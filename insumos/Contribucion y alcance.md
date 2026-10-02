@@ -3,14 +3,17 @@
 **Título de trabajo (definido el 29/09/2026):**
 *SuscripGuard: Control preventivo de suscripciones mediante tarjetas virtuales con políticas basadas en la detección de dark patterns*
 
-> **Estado:** borrador v0.2 (29/09/2026). Responde a los puntos 1 y 2 de la devolución de la Entrega 1.
+> **Estado:** borrador v0.3 (02/10/2026). Responde a los puntos 1 y 2 de la devolución de la Entrega 1.
 > Título y objetivos confirmados el 29/09/2026 (sección 8).
+> v0.3: aplicadas decisiones B1 y B2 (02/10/2026).
 
 ---
 
 ## 1. Enunciado del problema
 
 Los usuarios de servicios por suscripción no disponen de mecanismos que les permitan controlar los cobros recurrentes **sin depender de la voluntad del proveedor**. Los procesos de cancelación incorporan con frecuencia *dark patterns* (asimetría entre alta y baja, obstrucción, *confirmshaming*, interferencia visual, entre otros) que prolongan cobros no deseados. Las herramientas existentes abordan el problema de manera parcial: los gestores de suscripciones actúan de forma **reactiva** (detectan y asisten la cancelación una vez que el cobro ya ocurre), y los emisores de tarjetas virtuales ofrecen control sobre el medio de pago pero **sin información sobre el riesgo que presenta cada servicio**, por lo que la configuración de límites y vencimientos queda librada al criterio del usuario.
+
+El problema se acota a las **suscripciones digitales pagadas con tarjeta y sin permanencia mínima, incluidas las pruebas gratuitas**, y a los daños que el mecanismo puede prevenir: los cobros posteriores a una baja o a una prueba gratuita. Los daños que derivan de obligaciones contractuales (deuda, intereses, gestiones de cobranza) se tratan como contexto y limitaciones, porque rechazar un cobro no rescinde el contrato.
 
 ## 2. Pregunta de investigación
 
@@ -20,7 +23,7 @@ Los usuarios de servicios por suscripción no disponen de mecanismos que les per
 **Subpreguntas:**
 
 1. ¿Con qué precisión puede detectarse automáticamente un subconjunto de *dark patterns* a partir de una representación estructurada de los flujos de cancelación?
-2. ¿Qué diferencia de desempeño (precisión, falsos positivos, latencia) existe entre un clasificador basado en un modelo de decisión estructurada y una línea base de reglas heurísticas?
+2. ¿Qué diferencia de desempeño (precisión, falsos positivos, latencia) existe entre un clasificador basado en un modelo de lenguaje local (LLM local, ejecutado con Ollama) y una línea base heurística?
 3. ¿Cumple el motor de reglas de forma verificable las políticas definidas sobre las tarjetas virtuales (vencimiento, tope de monto, cantidad de cobros)?
 4. ¿Resulta la solución usable para el usuario final?
 
@@ -35,10 +38,10 @@ La contribución no reside en cada componente aislado (las tarjetas virtuales y 
 | Id | Aporte | Tipo |
 |----|--------|------|
 | A1 | Esquema de representación estructurada de flujos de cancelación (pasos, elementos, canales, prominencia) que permite analizarlos automáticamente sin depender de capturas de pantalla. | Modelado |
-| A2 | Operacionalización de un subconjunto de la taxonomía de *dark patterns* en reglas heurísticas y preguntas tipadas de clasificación, con evidencia trazable por paso. | Método |
+| A2 | Operacionalización de un subconjunto de la taxonomía de *dark patterns* en reglas heurísticas y en una clasificación con salida validada contra un esquema, con evidencia trazable por paso. | Método |
 | A3 | Corpus etiquetado de flujos de cancelación de 15 a 20 servicios, capturado en una fecha determinada. | Datos |
 | A4 | Motor de políticas que traduce el índice de riesgo en configuraciones de tarjeta virtual y las ejecuta de forma determinista. | Diseño / implementación |
-| A5 | Evaluación comparativa del clasificador (modelo de decisión estructurada vs. línea base heurística). | Evaluación |
+| A5 | Evaluación comparativa del clasificador LLM local (ejecutado con Ollama) frente a la línea base heurística. | Evaluación |
 
 ## 4. Clasificación de componentes
 
@@ -52,7 +55,7 @@ La contribución no reside en cada componente aislado (las tarjetas virtuales y 
                                       │                               │
                                       ▼                               ▼
                                Informe de riesgo              Alertas al usuario
-                               por servicio                   (previas a renovación)
+                               por servicio                   (previas a contratación/renov.)
 ```
 
 - **N1. Módulo de detección de *dark patterns*** (ver sección 5).
@@ -64,7 +67,7 @@ La contribución no reside en cada componente aislado (las tarjetas virtuales y 
 - Registro de usuarios y autenticación.
 - Registro manual de suscripciones.
 - Panel de suscripciones activas, tarjetas asociadas y gasto mensual.
-- Notificaciones (alertas previas a renovación o vencimiento).
+- Notificaciones (alertas previas a la contratación, a la renovación o al vencimiento).
 
 ### 4.3. Complementario (se incorpora solo si el cronograma lo permite)
 
@@ -81,6 +84,10 @@ La contribución no reside en cada componente aislado (las tarjetas virtuales y 
 | Análisis de capturas de pantalla / imágenes | Se trabaja sobre representación estructurada (texto y atributos del DOM). |
 | Cancelación automática en nombre del usuario | Implica credenciales de terceros y riesgos legales; el control se ejerce sobre el medio de pago. |
 | Generación de cartas de cancelación, SSI, monitoreo con Grafana/Prometheus | No responden a ninguna subpregunta de investigación. |
+| Servicios con permanencia mínima | Bloquear la tarjeta no extingue la obligación contractual y el proveedor puede generar deuda; el mecanismo solo advierte la permanencia antes de contratar. |
+| Servicios no pagados con tarjeta | El control se ejerce sobre el medio de pago; otras formas de facturación quedan fuera de su alcance. |
+| Servicios no digitales | El análisis y la captura se realizan sobre flujos digitales. |
+| Extinción del contrato y gestión de la deuda | Rechazar un cobro no rescinde el contrato; el sistema no extingue obligaciones contractuales ni gestiona deuda, intereses o reclamos. |
 
 ## 5. Especificación del módulo de detección de *dark patterns*
 
@@ -96,9 +103,10 @@ Una **representación estructurada (JSON)** del flujo de cancelación de un serv
 1. **Extracción de rasgos:** normalización de textos y cálculo de atributos derivados (asimetría alta/baja, diferencia de prominencia entre "cancelar" y "retener", cantidad de ofertas de retención).
 2. **Detección heurística** de patrones estructurales, que se resuelven con reglas explícitas (p. ej. baja que exige canal telefónico → obstrucción).
 3. **Clasificación** de patrones semánticos mediante una **interfaz de clasificador independiente del modelo**, con dos implementaciones:
-   - modelo de decisión estructurada (Jev, de TypeSafe AI), formulando cada combinación paso–patrón como pregunta de tipo *Choice* o *Noul*;
-   - línea base heurística (y, opcionalmente, un LLM local).
+   - clasificador basado en un modelo de lenguaje local (LLM local, ejecutado con Ollama), cuya salida se valida contra un esquema; [[DECISIÓN: modelo y tamaño del LLM local — opciones a confirmar]]; [[DATO PENDIENTE: hardware donde corre el LLM local]];
+   - línea base heurística.
 4. **Agregación** de resultados en un índice de riesgo mediante una fórmula documentada y ponderada por patrón.
+5. **Alerta previa a la contratación:** cuando se detecta permanencia o costos ocultos (patrón 6), el sistema emite una alerta previa a la contratación, antes de que se genere la tarjeta o el compromiso de pago.
 
 ### 5.3. Subconjunto de patrones (a confirmar con el estado del arte)
 
@@ -116,6 +124,7 @@ Un **informe de riesgo por servicio** que contiene:
 
 - lista de patrones detectados, con el paso donde ocurren, la evidencia (elemento o texto) y la probabilidad o confianza asociada;
 - índice de riesgo de cancelación (niveles bajo / medio / alto);
+- alerta previa a la contratación, si se detectó permanencia o costos ocultos;
 - fecha de captura del flujo analizado.
 
 El índice de riesgo es la entrada que consume el motor de reglas (N2).
@@ -126,12 +135,16 @@ El índice de riesgo es la entrada que consume el motor de reglas (N2).
 - No emite dictámenes legales: señala patrones, no incumplimientos normativos.
 - Los flujos que terminan en canales no digitales (teléfono) se registran como tales, pero su contenido no se analiza.
 - El resultado es válido para la fecha de captura; los servicios pueden modificar sus flujos.
+- No extingue obligaciones contractuales ni previene deuda en servicios con permanencia: rechazar un cobro no rescinde el contrato. En esos servicios, el mecanismo se limita a la alerta previa a la contratación.
 
 ## 6. Supuestos y riesgos
 
 | Riesgo | Mitigación |
 |--------|------------|
-| Jev se encuentra en acceso anticipado (lanzado en septiembre de 2026), es un servicio propietario y no tiene validación independiente. | Interfaz de clasificador independiente del modelo; línea base propia; verificar que los términos de uso permitan publicar resultados. |
+| El LLM local puede variar su desempeño entre versiones del modelo. | Fijar la versión del modelo y registrarla junto con cada resultado; interfaz de clasificador independiente del modelo; línea base heurística propia. |
+| La latencia del LLM local depende del hardware de ejecución. | Registrar el hardware utilizado e informar la latencia junto con él. [[DATO PENDIENTE: hardware donde corre el LLM local]] |
+| El LLM local no es determinista: una misma entrada puede producir salidas distintas. | Fijar temperatura y semilla, registrarlas en cada ejecución y validar la salida contra un esquema. [[CITA PENDIENTE: respaldo de que fijar temperatura y semilla reduce la variabilidad en el runtime elegido]] |
+| El mecanismo podría usarse en servicios con permanencia, donde rechazar el cobro puede generar deuda. | Alertar antes de contratar cuando se detecta permanencia o costos ocultos y explicitar el límite en el alcance y en la interfaz. |
 | Construcción del corpus más costosa de lo previsto. | Limitar a 15–20 servicios; priorizar servicios con uso en Argentina y casos documentados. |
 | Flujos detrás de inicio de sesión o que cambian con el tiempo. | Captura con cuentas de prueba; registro de fecha; el corpus es una fotografía, no un monitoreo continuo. |
 | Tarjetas simuladas percibidas como "poco reales". | Adaptador para un proveedor real en sandbox como demostración opcional. |
@@ -140,7 +153,7 @@ El índice de riesgo es la entrada que consume el motor de reglas (N2).
 
 | Componente | Métrica principal |
 |------------|-------------------|
-| N1 Detección | Precisión, *recall*, F1 y tasa de falsos positivos por patrón, sobre el corpus etiquetado; comparación Jev vs. línea base. |
+| N1 Detección | Precisión, *recall*, F1 y tasa de falsos positivos por patrón, sobre el corpus etiquetado; comparación clasificador LLM local vs. línea base heurística. |
 | N1 Detección | Latencia por flujo analizado. |
 | N2 Motor de reglas | Porcentaje de cumplimiento de reglas en escenarios de prueba (objetivo: 100 %). |
 | N3 Emulador | Rechazo correcto de cobros tras vencimiento, tope o cantidad de cobros. |

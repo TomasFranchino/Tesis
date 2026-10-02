@@ -1,6 +1,7 @@
 # Estado del arte comparativo — SuscripGuard
 
-> **Estado:** borrador v0.1 (29/09/2026). Responde al punto 6 de la devolución de la Entrega 1: comparación sistemática entre las soluciones existentes y SuscripGuard, con criterios explícitos, para fundamentar la brecha.
+> **Estado:** borrador v0.2 (02/10/2026). Responde al punto 6 de la devolución de la Entrega 1: comparación sistemática entre las soluciones existentes y SuscripGuard, con criterios explícitos, para fundamentar la brecha.
+> v0.2: aplicadas decisiones B1 y B2 (02/10/2026).
 > Cada antecedente sigue la estructura definida en *1.1 Antecedentes de investigacion.md*: identificación, objetivo, tecnología/metodología, resultados y aporte a la tesis.
 > Las correcciones de datos del archivo 1.1 están en la sección 7 y **no se aplicaron todavía**.
 
@@ -63,7 +64,7 @@ Para que la comparación sea reproducible se documenta cómo se buscaron los ant
 | B5 | **DPDGPT** — Lin, Nie, Xue, Zhang y Zhang (2026), *Information and Software Technology* 190 | Capturas (visual + texto) | LLM multimodal con razonamiento en cadena y verificación | 1 609 UIs, 2 015 instancias, 19 tipos | P 0,86 · R 0,91 · F1 0,88 | Pantallas aisladas; sin foco en suscripciones |
 
 **Aportes a la tesis:**
-- **B4 respalda directamente una decisión de diseño de SuscripGuard.** AutoBot convierte la interfaz en una **representación estructurada en texto** antes de clasificar con un modelo de lenguaje, y así alcanza el mejor desempeño reportado. Es el mismo enfoque del aporte A1 (esquema estructurado del flujo), que además permite usar un clasificador de solo texto como Jev.
+- **B4 respalda directamente una decisión de diseño de SuscripGuard.** AutoBot convierte la interfaz en una **representación estructurada en texto** antes de clasificar con un modelo de lenguaje, y así alcanza el mejor desempeño reportado. Es el mismo enfoque del aporte A1 (esquema estructurado del flujo), que además permite usar un clasificador de solo texto, como el clasificador basado en un modelo de lenguaje local (LLM local, ejecutado con Ollama) previsto para SuscripGuard.
 - **B3 es el antecedente técnico más cercano:** analiza secuencias de varios pasos y detecta *roach motel*. Muestra que el análisis de flujos es viable, y que el desempeño por tipo de patrón es bastante menor que el global (macro F1 0,62 frente a micro 0,76).
 - **Referencia para los umbrales:** los trabajos publicados reportan F1 entre 0,62 y 0,93. Los umbrales propuestos en *Plan de validacion.md* (*recall* ≥ 0,75, precisión ≥ 0,70) caen dentro de ese rango.
 
