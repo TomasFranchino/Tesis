@@ -104,7 +104,7 @@ El cuello de botella de la tesis es la evidencia, no el texto. N2 (motor de regl
 | Destino | Proporción | Qué incluye |
 |---------|:----------:|-------------|
 | Prototipo (otro repositorio) | ~50 % | Esquema JSON del flujo, esqueleto del monolito modular, N2 + N3 con E01–E12 y pruebas basadas en propiedades, scripts de captura con Playwright |
-| Tesis: F0 y F1 | ~25 % | Reorganización, identificadores, verificación de fuentes, Jev, mapeo de patrones, antecedentes nacionales |
+| Tesis: F0 y F1 | ~25 % | Reorganización, identificadores, verificación de fuentes, reformulación de SP2 (LLM local), mapeo de patrones, antecedentes nacionales |
 | Tesis: F2 (borradores de capítulos 1–3) | ~15 % | Redacción y verificación de citas |
 | Reserva final | ~10 % | Últimos días antes del vencimiento: tribunal con Opus sobre todo lo escrito, verificación de citas completa |
 
@@ -115,7 +115,7 @@ El código generado con ayuda de agentes también se registra en `gestion/USO_IA
 | Semana | Tesis (este repositorio) | Prototipo |
 |--------|--------------------------|-----------|
 | 2–8 oct | F0 completa; calibrar costo por sesión | Subir a GitHub; esquema JSON (T-030) |
-| 9–15 oct | F1: T-011 (Jev), T-012 (patrones), T-015 (antecedentes) | Esqueleto del monolito; N2 con E01–E12 |
+| 9–15 oct | F1: T-011 (SP2 con LLM local), T-019 (ADR-07), T-012 (patrones), T-015 (antecedentes) | Esqueleto del monolito; N2 con E01–E12 |
 | 16–22 oct | Esqueleto de `tesis/`; capítulo 2 | N3 y pruebas basadas en propiedades |
 | 23–29 oct | Capítulos 1 y 3 | Integración N2–N3; scripts de captura |
 | 30 oct–4 nov | Compuerta F1/F2 con Opus; verificación de citas completa | Lo que quede del crédito |
@@ -138,7 +138,7 @@ Las fases 2 y 3 corren **en paralelo**: mientras el enjambre redacta los capítu
 | Fase | Objetivo | Compuerta (todo debe cumplirse) |
 |------|----------|---------------------------------|
 | **F0 Saneamiento** (~1 semana) | Repositorio ordenado y fuentes verificadas | Repositorio reorganizado · `check_ids.py` sin referencias rotas ni colisiones · correcciones de *Estado del arte* §7 aplicadas · `referencias.bib` con ficha para cada fuente ya citada · cada archivo de `insumos/` con cabecera de estado y versión |
-| **F1 Decisiones abiertas** (~1–2 semanas; coincide con la Entrega 2) | Que no quede nada estructural por decidir | B1, B2 y B3 del diagnóstico resueltos y registrados · subconjunto de 7 patrones mapeado a las taxonomías · Jev verificado o plan alternativo activado · índice de la memoria validado con el profesor · `revisor-tribunal` (Opus) sobre `insumos/` sin BLOQUEANTES |
+| **F1 Decisiones abiertas** (~1–2 semanas; coincide con la Entrega 2) | Que no quede nada estructural por decidir | B1, B2 y B3 del diagnóstico resueltos y registrados · subconjunto de 7 patrones mapeado a las taxonomías · SP2 reformulada con LLM local (Ollama) y ADR-07 recalculado · índice de la memoria validado con el profesor · `revisor-tribunal` (Opus) sobre `insumos/` sin BLOQUEANTES |
 | **F2 Capítulos 1–3 y anexos metodológicos** | Mitad teórica y metodológica entregable | Capítulos 1–3 en `tesis/` · verificador: 0 SIN CITA y 0 SIN RESPALDO · tribunal sin BLOQUEANTES · solo quedan marcadores `[[RESULTADO PENDIENTE]]` · justificación y contribución reescritas por Tomás con su voz · guía de etiquetado lista |
 | **F3 Evidencia** (camino crítico) | Resultados reales y reproducibles | Corpus capturado y versionado · kappa calculado sobre ≥ 30 % · suite E01–E12 al 100 % · V1 ejecutado sobre el conjunto de prueba · V3, V4 y V5 ejecutados · todo resultado en `evidencia/resultados/` con metadatos · un comando reproduce el análisis |
 | **F4 Capítulos 4–6** | Mitad empírica entregable | Toda cifra con `<!-- fuente: evidencia/… -->` · la discusión responde SP1–SP4 y la pregunta principal de forma explícita · limitaciones y amenazas a la validez actualizadas con lo ocurrido · tribunal sin BLOQUEANTES |
