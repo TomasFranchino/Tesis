@@ -3,9 +3,10 @@
 **Título de trabajo (definido el 29/09/2026):**
 *SuscripGuard: Control preventivo de suscripciones mediante tarjetas virtuales con políticas basadas en la detección de dark patterns*
 
-> **Estado:** borrador v0.3 (02/10/2026). Responde a los puntos 1 y 2 de la devolución de la Entrega 1.
-> Título y objetivos confirmados el 29/09/2026 (sección 8).
+> **Estado:** borrador v0.4 (02/10/2026). Responde a los puntos 1 y 2 de la devolución de la Entrega 1.
+> Título y objetivos confirmados el 29/09/2026 (sección 8); objetivos actualizados el 02/10/2026 en *Objetivos.md*.
 > v0.3: aplicadas decisiones B1 y B2 (02/10/2026).
+> v0.4: la alerta de permanencia o costos ocultos se obtiene del correo de confirmación del alta, analizado con el LLM local (decisión de Tomás, 02/10/2026). Pendiente de revisión del tesista.
 
 ---
 
@@ -13,7 +14,7 @@
 
 Los usuarios de servicios por suscripción no disponen de mecanismos que les permitan controlar los cobros recurrentes **sin depender de la voluntad del proveedor**. Los procesos de cancelación incorporan con frecuencia *dark patterns* (asimetría entre alta y baja, obstrucción, *confirmshaming*, interferencia visual, entre otros) que prolongan cobros no deseados. Las herramientas existentes abordan el problema de manera parcial: los gestores de suscripciones actúan de forma **reactiva** (detectan y asisten la cancelación una vez que el cobro ya ocurre), y los emisores de tarjetas virtuales ofrecen control sobre el medio de pago pero **sin información sobre el riesgo que presenta cada servicio**, por lo que la configuración de límites y vencimientos queda librada al criterio del usuario.
 
-El problema se acota a las **suscripciones digitales pagadas con tarjeta y sin permanencia mínima, incluidas las pruebas gratuitas**, y a los daños que el mecanismo puede prevenir: los cobros posteriores a una baja o a una prueba gratuita. Los daños que derivan de obligaciones contractuales (deuda, intereses, gestiones de cobranza) se tratan como contexto y limitaciones, porque rechazar un cobro no rescinde el contrato.
+El problema se acota a las **suscripciones digitales pagadas con tarjeta y sin permanencia mínima, incluidas las pruebas gratuitas**, y a los daños que el mecanismo puede prevenir: los cobros posteriores a una baja o a una prueba gratuita. Los daños que derivan de obligaciones contractuales (deuda, intereses, gestiones de cobranza) se tratan como contexto y limitaciones, porque rechazar un cobro no rescinde el contrato. Para advertir al usuario sobre los servicios que quedan fuera de ese alcance, la permanencia mínima y los costos ocultos se detectan en el correo de confirmación del alta.
 
 ## 2. Pregunta de investigación
 
@@ -37,9 +38,9 @@ La contribución no reside en cada componente aislado (las tarjetas virtuales y 
 
 | Id | Aporte | Tipo |
 |----|--------|------|
-| A1 | Esquema de representación estructurada de flujos de cancelación (pasos, elementos, canales, prominencia) que permite analizarlos automáticamente sin depender de capturas de pantalla. | Modelado |
+| A1 | Esquema de representación estructurada de flujos de cancelación (pasos, elementos, canales, prominencia) que permite analizarlos automáticamente sin depender de capturas de pantalla, complementado con un bloque de condiciones de contratación extraídas del correo de confirmación del alta (permanencia mínima, penalidad por baja anticipada, renovación automática, precio tras la prueba). | Modelado |
 | A2 | Operacionalización de un subconjunto de la taxonomía de *dark patterns* en reglas heurísticas y en una clasificación con salida validada contra un esquema, con evidencia trazable por paso. | Método |
-| A3 | Corpus etiquetado de flujos de cancelación de 15 a 20 servicios, capturado en una fecha determinada. | Datos |
+| A3 | Corpus etiquetado de flujos de cancelación de 15 a 20 servicios y de los correos de confirmación del alta de esos servicios, capturado en una fecha determinada. | Datos |
 | A4 | Motor de políticas que traduce el índice de riesgo en configuraciones de tarjeta virtual y las ejecuta de forma determinista. | Diseño / implementación |
 | A5 | Evaluación comparativa del clasificador LLM local (ejecutado con Ollama) frente a la línea base heurística. | Evaluación |
 
@@ -52,10 +53,11 @@ La contribución no reside en cada componente aislado (las tarjetas virtuales y 
  capturado (JSON)       ──►     de dark patterns     ──►     y políticas        ──►      virtuales
  [pasos, elementos,             [heurísticas +               [riesgo + suscripción       [emisión, autorización,
   canales, prominencia]          clasificador]                → política de tarjeta]      rechazo, vencimiento]
-                                      │                               │
-                                      ▼                               ▼
-                               Informe de riesgo              Alertas al usuario
-                               por servicio                   (previas a contratación/renov.)
+                                      ▲      │                        │
+ Correo de confirmación ──────────────┘      ▼                        ▼
+ del alta                      Informe de riesgo              Alertas al usuario
+                               por servicio + alerta de       (permanencia o costos
+                               permanencia o costos ocultos    ocultos, renovación)
 ```
 
 - **N1. Módulo de detección de *dark patterns*** (ver sección 5).
@@ -67,11 +69,11 @@ La contribución no reside en cada componente aislado (las tarjetas virtuales y 
 - Registro de usuarios y autenticación.
 - Registro manual de suscripciones.
 - Panel de suscripciones activas, tarjetas asociadas y gasto mensual.
-- Notificaciones (alertas previas a la contratación, a la renovación o al vencimiento).
+- Notificaciones (alertas de permanencia o costos ocultos, y alertas previas a la renovación o al vencimiento).
 
 ### 4.3. Complementario (se incorpora solo si el cronograma lo permite)
 
-- **Detección de suscripciones a partir de correos electrónicos.** Si se implementa, deberá respetar el enfoque de privacidad: procesamiento con modelo local o limitado a metadatos (remitente, asunto), sin enviar el contenido de los correos a servicios externos.
+- **Detección de suscripciones a partir de correos electrónicos.** Si se implementa, deberá respetar el enfoque de privacidad: procesamiento con modelo local o limitado a metadatos (remitente, asunto), sin enviar el contenido de los correos a servicios externos. Lo complementario es descubrir suscripciones recorriendo la bandeja de entrada; el análisis del correo de confirmación del alta de una suscripción ya registrada (sección 5.2, paso 5) forma parte del núcleo.
 
 ### 4.4. Fuera de alcance
 
@@ -84,7 +86,7 @@ La contribución no reside en cada componente aislado (las tarjetas virtuales y 
 | Análisis de capturas de pantalla / imágenes | Se trabaja sobre representación estructurada (texto y atributos del DOM). |
 | Cancelación automática en nombre del usuario | Implica credenciales de terceros y riesgos legales; el control se ejerce sobre el medio de pago. |
 | Generación de cartas de cancelación, SSI, monitoreo con Grafana/Prometheus | No responden a ninguna subpregunta de investigación. |
-| Servicios con permanencia mínima | Bloquear la tarjeta no extingue la obligación contractual y el proveedor puede generar deuda; el mecanismo solo advierte la permanencia antes de contratar. |
+| Servicios con permanencia mínima | Bloquear la tarjeta no extingue la obligación contractual y el proveedor puede generar deuda; el mecanismo solo alerta sobre la permanencia al detectarla en el correo de confirmación del alta. |
 | Servicios no pagados con tarjeta | El control se ejerce sobre el medio de pago; otras formas de facturación quedan fuera de su alcance. |
 | Servicios no digitales | El análisis y la captura se realizan sobre flujos digitales. |
 | Extinción del contrato y gestión de la deuda | Rechazar un cobro no rescinde el contrato; el sistema no extingue obligaciones contractuales ni gestiona deuda, intereses o reclamos. |
@@ -98,6 +100,8 @@ Una **representación estructurada (JSON)** del flujo de cancelación de un serv
 - **Nivel flujo:** servicio, fecha de captura, cantidad de pasos de alta y de baja, canal final requerido para la baja (web, chat, teléfono, correo), si requiere inicio de sesión.
 - **Nivel paso:** URL o canal, textos visibles, elementos interactivos con su rol (acción principal, secundaria, enlace), atributos de prominencia derivados del DOM/CSS (tamaño relativo, contraste, posición) y tipo de acción ofrecida (cancelar, oferta de retención, redirección, información).
 
+Para la alerta de permanencia o costos ocultos se usa, además, el **correo de confirmación del alta** de la suscripción. Se procesa solo con el LLM local (RNF-04). `[[DECISIÓN: forma de ingreso del correo — A) importación manual por el usuario (archivo .eml o texto pegado); B) lectura del buzón por IMAP o Gmail API. Recomendación: A, porque no requiere acceso al buzón y acota el tratamiento de datos personales a un solo correo]]`
+
 ### 5.2. Proceso
 
 1. **Extracción de rasgos:** normalización de textos y cálculo de atributos derivados (asimetría alta/baja, diferencia de prominencia entre "cancelar" y "retener", cantidad de ofertas de retención).
@@ -106,7 +110,8 @@ Una **representación estructurada (JSON)** del flujo de cancelación de un serv
    - clasificador basado en un modelo de lenguaje local (LLM local, ejecutado con Ollama), cuya salida se valida contra un esquema; [[DECISIÓN: modelo y tamaño del LLM local — opciones a confirmar]]; [[DATO PENDIENTE: hardware donde corre el LLM local]];
    - línea base heurística.
 4. **Agregación** de resultados en un índice de riesgo mediante una fórmula documentada y ponderada por patrón.
-5. **Alerta previa a la contratación:** cuando se detecta permanencia o costos ocultos (patrón 6), el sistema emite una alerta previa a la contratación, antes de que se genere la tarjeta o el compromiso de pago.
+5. **Alerta de permanencia o costos ocultos (B1 c):** el LLM local analiza el correo de confirmación del alta y extrae las condiciones de contratación (permanencia mínima, penalidad por baja anticipada, renovación automática, precio tras la prueba; bloque definido en T-028), con salida validada contra un esquema. Si detecta permanencia o costos ocultos (patrón 6), el sistema emite una alerta al usuario. El enfoque se apoya en que estas condiciones deben informarse en la confirmación de la contratación `[[CITA PENDIENTE: norma que obliga a informar la permanencia mínima y los cargos en el correo o comprobante de confirmación de la suscripción; jurisdicción y alcance (T-029)]]`.
+   `[[DECISIÓN: momento de la alerta. B1 (c) la definió como "previa a la contratación", pero el correo de confirmación llega después del alta. Opciones: A) redefinirla como alerta temprana posterior al alta, vinculada con el derecho de revocación de la contratación a distancia (requiere cita de la norma y del plazo, T-029); B) conservar además el análisis del flujo de alta para emitir una alerta realmente previa, lo que amplía el corpus. Recomendación: A, porque mantiene el corpus y el alcance técnico definidos por el tesista]]`
 
 ### 5.3. Subconjunto de patrones (a confirmar con el estado del arte)
 
@@ -124,7 +129,7 @@ Un **informe de riesgo por servicio** que contiene:
 
 - lista de patrones detectados, con el paso donde ocurren, la evidencia (elemento o texto) y la probabilidad o confianza asociada;
 - índice de riesgo de cancelación (niveles bajo / medio / alto);
-- alerta previa a la contratación, si se detectó permanencia o costos ocultos;
+- alerta de permanencia o costos ocultos, si se detectaron en el correo de confirmación del alta, con el fragmento del correo que la respalda;
 - fecha de captura del flujo analizado.
 
 El índice de riesgo es la entrada que consume el motor de reglas (N2).
@@ -135,7 +140,8 @@ El índice de riesgo es la entrada que consume el motor de reglas (N2).
 - No emite dictámenes legales: señala patrones, no incumplimientos normativos.
 - Los flujos que terminan en canales no digitales (teléfono) se registran como tales, pero su contenido no se analiza.
 - El resultado es válido para la fecha de captura; los servicios pueden modificar sus flujos.
-- No extingue obligaciones contractuales ni previene deuda en servicios con permanencia: rechazar un cobro no rescinde el contrato. En esos servicios, el mecanismo se limita a la alerta previa a la contratación.
+- No extingue obligaciones contractuales ni previene deuda en servicios con permanencia: rechazar un cobro no rescinde el contrato. En esos servicios, el mecanismo se limita a la alerta de permanencia o costos ocultos.
+- La alerta depende de lo que informe el correo de confirmación: si una condición no figura en el correo, no se detecta, y su ausencia se registra como tal.
 
 ## 6. Supuestos y riesgos
 
@@ -144,7 +150,9 @@ El índice de riesgo es la entrada que consume el motor de reglas (N2).
 | El LLM local puede variar su desempeño entre versiones del modelo. | Fijar la versión del modelo y registrarla junto con cada resultado; interfaz de clasificador independiente del modelo; línea base heurística propia. |
 | La latencia del LLM local depende del hardware de ejecución. | Registrar el hardware utilizado e informar la latencia junto con él. [[DATO PENDIENTE: hardware donde corre el LLM local]] |
 | El LLM local no es determinista: una misma entrada puede producir salidas distintas. | Fijar temperatura y semilla, registrarlas en cada ejecución y validar la salida contra un esquema. [[CITA PENDIENTE: respaldo de que fijar temperatura y semilla reduce la variabilidad en el runtime elegido]] |
-| El mecanismo podría usarse en servicios con permanencia, donde rechazar el cobro puede generar deuda. | Alertar antes de contratar cuando se detecta permanencia o costos ocultos y explicitar el límite en el alcance y en la interfaz. |
+| El mecanismo podría usarse en servicios con permanencia, donde rechazar el cobro puede generar deuda. | Alertar cuando el correo de confirmación del alta revela permanencia o costos ocultos y explicitar el límite en el alcance y en la interfaz. |
+| El correo de confirmación puede no informar la permanencia o los cargos, aunque la norma lo exija. | Registrar la ausencia como resultado (no como "sin permanencia"); verificar el alcance de la obligación (T-029). |
+| Los correos de confirmación contienen datos personales. | Procesamiento exclusivamente local (RNF-04); en el corpus, correos de las cuentas de prueba usadas para capturar los flujos, con datos personales anonimizados. |
 | Construcción del corpus más costosa de lo previsto. | Limitar a 15–20 servicios; priorizar servicios con uso en Argentina y casos documentados. |
 | Flujos detrás de inicio de sesión o que cambian con el tiempo. | Captura con cuentas de prueba; registro de fecha; el corpus es una fotografía, no un monitoreo continuo. |
 | Tarjetas simuladas percibidas como "poco reales". | Adaptador para un proveedor real en sandbox como demostración opcional. |
@@ -155,11 +163,14 @@ El índice de riesgo es la entrada que consume el motor de reglas (N2).
 |------------|-------------------|
 | N1 Detección | Precisión, *recall*, F1 y tasa de falsos positivos por patrón, sobre el corpus etiquetado; comparación clasificador LLM local vs. línea base heurística. |
 | N1 Detección | Latencia por flujo analizado. |
+| N1 Alerta de permanencia o costos ocultos (RF-28) | Precisión y *recall* de la extracción de condiciones de contratación por campo y de la alerta por servicio, sobre los correos de confirmación del corpus. |
 | N2 Motor de reglas | Porcentaje de cumplimiento de reglas en escenarios de prueba (objetivo: 100 %). |
 | N3 Emulador | Rechazo correcto de cobros tras vencimiento, tope o cantidad de cobros. |
 | Plataforma | Usabilidad mediante SUS. |
 
 ## 8. Cambios en otros archivos
+
+> Nota 02/10/2026: el objetivo general y los objetivos específicos se actualizaron en *Objetivos.md* (versión vigente v2.0). Las secciones 8.2 y 8.3 conservan la versión confirmada el 29/09/2026 como historial.
 
 ### 8.1. Título — DECIDIDO (29/09/2026)
 
