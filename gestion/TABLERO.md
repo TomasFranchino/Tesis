@@ -7,7 +7,7 @@ Fase actual: **F0 — Saneamiento**. Referencias B1–B3 e I1–I10: `gestion/DI
 
 | ID | Tarea | Agente | Depende de | Estado | Criterio de cierre |
 |----|-------|--------|-----------|--------|--------------------|
-| T-001 | Reorganizar el repositorio (`scripts/reorganizar_repo.py`) | orquestador | — | pendiente | Carpetas creadas; históricos en `archivo/`; commit |
+| T-001 | Reorganizar el repositorio (`scripts/reorganizar_repo.py`) | orquestador | — | en revisión | Carpetas creadas; históricos en `archivo/`; commit |
 | T-002 | Resolver colisión A1–A5 aportes vs. antecedentes (I1) | redactor | T-001, decisión de nomenclatura | espera decisión | `check_ids.py` sin colisiones |
 | T-003 | Etiquetar subpreguntas SP1–SP4 en Contribución §2 (I2) | redactor | T-001 | pendiente | `check_ids.py` sin referencias rotas |
 | T-004 | Verificar con fuente primaria las 10 correcciones de Estado del arte §7 (I3) | investigador-fuentes | T-001 | pendiente | Ficha por corrección; veredicto por cada una |
