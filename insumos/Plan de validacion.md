@@ -1,7 +1,7 @@
 # Plan de validación — SuscripGuard
 
-> **Estado:** v1.0 — revisado y aprobado por el tesista (29/09/2026). Responde al punto 5 de la devolución de la Entrega 1: cada componente importante se asocia con métricas concretas, un instrumento de medición y un criterio de aceptación.
-> Base: subpreguntas SP1–SP4 (*Contribucion y alcance.md*, sección 2), requisitos (*Requisitos.md* v1.0) y objetivo OE6.
+> **Estado:** v1.1 (02/10/2026) — la v1.0 fue revisada y aprobada por el tesista (29/09/2026). v1.1: aplicadas decisiones B1 y B2 (SP2 compara un clasificador LLM local contra la línea base heurística; latencia dependiente del hardware local; amenaza de variabilidad del modelo local). **Los cambios de v1.1 están pendientes de revisión del tesista.** Responde al punto 5 de la devolución de la Entrega 1: cada componente importante se asocia con métricas concretas, un instrumento de medición y un criterio de aceptación.
+> Base: subpreguntas SP1–SP4 (*Contribucion y alcance.md*, sección 2), requisitos (*Requisitos.md* v1.1) y objetivo OE6.
 > Los umbrales son **propuestos** y se ajustarán con el profesor de la materia (Román Zenobi), con el director/tutor una vez designado, y con los valores reportados en el estado del arte.
 
 ---
@@ -19,7 +19,7 @@ La validación se organiza en cinco bloques, uno por componente o atributo de ca
 | V5 | Usabilidad | SP4 | Prueba con usuarios (SUS) |
 | V6 | Escenario integral | Pregunta principal | Demostración reproducible de extremo a extremo |
 
-Se distingue entre **criterios de aceptación** (el prototipo debe cumplirlos) y **resultados experimentales** (se reportan cualquiera sea su valor). La comparación entre clasificadores es un resultado, no un criterio de aprobación: que el modelo de decisión estructurada supere o no a la línea base es, en sí mismo, un hallazgo.
+Se distingue entre **criterios de aceptación** (el prototipo debe cumplirlos) y **resultados experimentales** (se reportan cualquiera sea su valor). La comparación entre clasificadores es un resultado, no un criterio de aprobación: que el clasificador basado en un modelo de lenguaje local (LLM local, ejecutado con Ollama) supere o no a la línea base heurística es, en sí mismo, un hallazgo.
 
 ---
 
@@ -44,7 +44,7 @@ Se distingue entre **criterios de aceptación** (el prototipo debe cumplirlos) y
 | Tasa de falsos positivos | Paso–patrón | Respuesta directa al punto 5 de la devolución |
 | Curva precisión–*recall* por umbral | Paso–patrón | Aprovecha las probabilidades del clasificador para elegir el umbral de operación |
 | Exactitud y kappa ponderado del nivel de riesgo | Servicio | Concordancia entre el índice calculado y el asignado por el anotador |
-| Latencia p50 / p95 y costo por flujo | Flujo | Comparación operativa entre clasificadores |
+| Latencia p50 / p95 y uso de recursos por flujo | Flujo | Comparación operativa entre clasificadores; la latencia del clasificador LLM local depende del hardware local y no de la red |
 
 ### 2.3. Criterios de aceptación (propuestos)
 
@@ -52,14 +52,15 @@ El costo de los errores es asimétrico. Un **falso positivo** produce una polít
 
 - *Recall* macro ≥ 0,75 y precisión macro ≥ 0,70 en el conjunto de prueba, para al menos una de las implementaciones del clasificador.
 - Exactitud del nivel de riesgo por servicio ≥ 0,80.
-- Latencia por flujo < 30 s (RNF-09).
+- Latencia por flujo < 30 s (RNF-09). La latencia del clasificador LLM local depende del hardware donde se ejecuta y no de la red. `[[DECISIÓN: umbral de latencia para el clasificador LLM local — opciones: A) mantener < 30 s medido en el hardware de evaluación declarado; B) fijar un umbral distinto una vez conocidos el modelo y el hardware. Recomendación: B si el modelo elegido no cumple 30 s en el hardware disponible; el umbral depende del modelo elegido y del hardware]]` `[[DATO PENDIENTE: hardware donde corre el LLM local]]`
 
 ### 2.4. Comparación entre clasificadores (SP2)
 
-- Implementaciones: **(a)** modelo de decisión estructurada (Jev), **(b)** línea base heurística y, opcionalmente, **(c)** LLM local.
+- Implementaciones: **(a)** clasificador basado en un modelo de lenguaje local (LLM local, ejecutado con Ollama) y **(b)** línea base heurística.
 - Ambas se evalúan sobre las mismas instancias del conjunto de prueba.
 - Se reportan las diferencias de F1 con intervalos de confianza por *bootstrap* y la prueba de McNemar sobre las predicciones pareadas.
-- Se registra la versión del modelo y la fecha de cada ejecución, porque el servicio externo puede cambiar.
+- Condiciones que se registran en cada ejecución del clasificador LLM local: modelo `[[DECISIÓN: modelo y tamaño del LLM local — opciones a confirmar]]`, versión o etiqueta, cuantización, temperatura, semilla y hardware `[[DATO PENDIENTE: hardware donde corre el LLM local]]`, además de la fecha. Se fijan para que la evaluación pueda repetirse, ya que la salida de un modelo de lenguaje puede variar entre ejecuciones y entre equipos.
+- La latencia (p50 / p95) se mide por separado para cada implementación y se reporta junto con el hardware, porque en el clasificador LLM local depende de este y no de la red.
 
 ---
 
@@ -96,7 +97,7 @@ El costo de los errores es asimétrico. Un **falso positivo** produce una polít
 
 - **Máquina de estados:** se prueban todas las transiciones válidas y se verifica que las inválidas sean rechazadas (p. ej. reactivar una tarjeta destruida).
 - **Rendimiento de autorización:** prueba de carga con una herramienta específica (p. ej. k6 o Locust), con carga acorde a un prototipo (decenas de solicitudes concurrentes). **Criterio:** p95 < 1 s (RNF-08).
-- **Independencia:** la autorización se mide con el clasificador externo desconectado, para verificar que no depende de él.
+- **Independencia:** la autorización se mide con el clasificador LLM local detenido, para verificar que no depende de él.
 
 ---
 
@@ -104,7 +105,7 @@ El costo de los errores es asimétrico. Un **falso positivo** produce una polít
 
 | Requisito | Instrumento | Criterio |
 |-----------|-------------|----------|
-| RNF-04 Privacidad | Registro e inspección del tráfico saliente durante la ejecución completa de las pruebas de extremo a extremo | 0 solicitudes externas con datos del usuario; al clasificador solo llegan flujos del corpus |
+| RNF-04 Privacidad | Registro e inspección del tráfico saliente durante la ejecución completa de las pruebas de extremo a extremo | 0 solicitudes externas con datos del usuario; el clasificador LLM local corre en la misma máquina, por lo que el contenido de los flujos no sale de ella |
 | RNF-05 Datos de tarjeta | Búsqueda automatizada de números de tarjeta (patrón + verificación de Luhn) en base de datos, logs y respuestas de la API | 0 hallazgos en claro |
 | RNF-06 Seguridad de la aplicación | Escaneo dinámico (p. ej. OWASP ZAP) y revisión manual guiada por OWASP Top 10 | 0 hallazgos de severidad alta o crítica sin mitigar |
 
@@ -145,7 +146,7 @@ Demostración reproducible que recorre la contribución completa:
 | N1 Detección | SP1 | RF-03–07, RF-09 | *Recall* / precisión macro | Corpus etiquetado (conjunto de prueba) | ≥ 0,75 / ≥ 0,70 |
 | N1 Detección | SP1 | RF-07 | Exactitud del nivel de riesgo | Corpus etiquetado | ≥ 0,80 |
 | N1 Detección | SP2 | RF-05 | ΔF1 entre clasificadores | *Bootstrap* + McNemar | Se reporta |
-| N1 Detección | SP2 | RNF-09 | Latencia p95 y costo por flujo | Registro de ejecución | < 30 s |
+| N1 Detección | SP2 | RNF-09 | Latencia p95 y uso de recursos por flujo | Registro de ejecución (con hardware declarado) | < 30 s (sujeto a `[[DECISIÓN]]` de §2.3) |
 | Corpus | SP1 | RF-08 | Kappa de Cohen | Doble anotación ≥ 30 % | ≥ 0,61 |
 | N2 Motor | SP3 | RF-11–16, RNF-02 | % de escenarios aprobados | Suite E01–E12 + pruebas por propiedades | 100 % |
 | N2 Motor | SP3 | RNF-07 | Desvío del vencimiento | Pruebas temporales | < 1 min |
@@ -162,7 +163,7 @@ Demostración reproducible que recorre la contribución completa:
 | Corpus pequeño y tomado en una fecha: los resultados no se generalizan a todos los servicios ni a cambios posteriores. | Se declara como limitación; se registra la fecha de captura; se reportan intervalos de confianza. |
 | Sesgo del anotador (el tesista diseña el sistema y etiqueta el corpus). | Segundo anotador independiente y cálculo de kappa. |
 | Sobreajuste de heurísticas y preguntas al corpus. | Conjunto de prueba reservado y no consultado durante el diseño. |
-| Cambios del servicio externo de clasificación (acceso anticipado). | Registro de versión y fecha; línea base propia que permite completar la evaluación sin él. |
+| Variabilidad del modelo local: la salida del LLM puede cambiar entre ejecuciones, versiones del modelo, cuantizaciones o equipos. | Registro de modelo, versión, cuantización, temperatura, semilla y hardware (§2.4); parámetros fijados; repeticiones de la evaluación para estimar la variación `[[DECISIÓN: número de repeticiones por ejecución del clasificador LLM local]]`; línea base heurística determinista como referencia. |
 | El emulador no reproduce todas las condiciones de una red de pagos real. | Se declara el alcance simulado; adaptador para un *sandbox* real como demostración opcional. |
 | Muestra de usabilidad reducida y no representativa. | Se reporta como estudio exploratorio; perfil de participantes documentado. |
 
@@ -174,3 +175,6 @@ Demostración reproducible que recorre la contribución completa:
 - Consultar con Román Zenobi los umbrales propuestos.
 - Redactar la guía de etiquetado.
 - Buscar en el estado del arte las métricas reportadas por trabajos de detección automática de *dark patterns*, para contextualizar los umbrales de V1.
+- `[[DECISIÓN: modelo y tamaño del LLM local — opciones a confirmar]]` y `[[DATO PENDIENTE: hardware donde corre el LLM local]]`; de ambos depende el umbral de latencia (§2.3).
+- Definir el protocolo de fijación de versión, temperatura y semilla del LLM local y el número de repeticiones (§2.4, §9).
+- Definir cómo se valida la alerta previa a la contratación (RF-28), incluida su métrica y el corpus de flujos de alta que requeriría; el corpus de V1 se concibió con flujos de cancelación.
