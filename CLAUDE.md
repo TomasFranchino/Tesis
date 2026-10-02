@@ -42,7 +42,7 @@ Los nombres de archivo pueden tener espacios o guiones bajos (`Plan de validacio
 
 - Español académico neutro. Sin voseo, sin primera persona del singular; impersonal o primera del plural según se decida (`[[DECISIÓN]]` pendiente, por defecto impersonal).
 - Términos en inglés en cursiva, con traducción la primera vez: *dark patterns* (patrones oscuros).
-- Citas en formato Pandoc `[@clave]`, claves del `.bib`. Norma de citación: `[[DECISIÓN]]` pendiente (por defecto APA 7).
+- Citas en formato Pandoc `[@clave]`, claves del `.bib`. Norma de citación: **IEEE** (decidido el 02/10/2026; estilo `bibliografia/ieee.csl`). Entrega en Word (.docx).
 - Sin adjetivos valorativos sin respaldo ("usurero", "abusivo", "viveza"): describir la práctica y citar a quien la calificó.
 - Mantener los identificadores (RF-xx, OE-x, SPx, ADR-xx) cuando ayudan a la trazabilidad.
 
