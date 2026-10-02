@@ -31,6 +31,7 @@ Fase actual: **F0 — Saneamiento**. Referencias B1–B3 e I1–I10: `gestion/DI
 | T-017 | Consultas al profesor: índice ajustado, umbrales, pesos ADR-07, enfoque del marco teórico, segundo anotador | Tomás | — | pendiente | Respuestas registradas en BITÁCORA |
 | T-018 | Revisión de tribunal (Opus) sobre `insumos/` completos | revisor-tribunal | T-010 a T-014 | pendiente | Sin BLOQUEANTES |
 | T-019 | Recalcular ADR-07 sin Jev (K2 = "integración con LLM local y validación de esquemas") | redactor → Tomás | T-011 | en revisión | Tabla 7.5 recalculada; si cambia el ganador, `[[DECISIÓN]]` sin cambiar 7.7 |
+| T-029 | Verificar la obligación legal de informar permanencia mínima y cargos en la confirmación de la suscripción, y el derecho de revocación de la contratación a distancia (Argentina; fuente primaria) | investigador-fuentes | — | pendiente | Ficha por norma con veredicto (existe / no existe / alcance); resuelve los `[[CITA PENDIENTE]]` de Contribución §5.2 |
 
 ## F2 — Capítulos 1–3 (en paralelo con F3)
 
@@ -44,16 +45,16 @@ Fase actual: **F0 — Saneamiento**. Referencias B1–B3 e I1–I10: `gestion/DI
 | T-025 | Estado del arte y brecha (2.6) | redactor | T-012, T-014, T-015 | pendiente | Compuerta F2 para el capítulo |
 | T-026 | Capítulo 3 Metodología | redactor | T-017 | pendiente | Compuerta F2 para el capítulo |
 | T-027 | Guía de etiquetado (anexo) | redactor → Tomás | T-012, T-013 | pendiente | Definición operativa y ejemplos ± por patrón |
-| T-028 | Bloque de condiciones de contratación en el esquema A1 (permanencia, penalidad, renovación automática, precio tras la prueba) — sustenta la alerta previa a la contratación (B1 c) | redactor → Tomás | T-010 | pendiente | Bloque especificado en Contribución §5 y listo para incorporar en T-030 |
+| T-028 | Bloque de condiciones de contratación en el esquema A1 (permanencia, penalidad, renovación automática, precio tras la prueba), extraído del correo de confirmación del alta — sustenta la alerta de permanencia o costos ocultos (RF-28) | redactor → Tomás | T-010 | pendiente | Bloque especificado (campos, tipos, valor "no informado") en Contribución §5 y listo para incorporar en T-030 |
 
 ## F3 — Evidencia (camino crítico; trabajo principal de Tomás)
 
 | ID | Tarea | Agente | Depende de | Estado | Criterio de cierre |
 |----|-------|--------|-----------|--------|--------------------|
 | T-030 | Esquema JSON del flujo de cancelación (A1) versionado | Tomás (+ Claude Code en el repo del prototipo) | T-012, T-028 | pendiente | Esquema publicado y validado con 2 flujos |
-| T-031 | Captura del corpus (15–20 servicios) | Tomás | T-030 | pendiente | Flujos en `evidencia/datos/corpus/` con fecha |
+| T-031 | Captura del corpus (15–20 servicios), incluidos los correos de confirmación del alta | Tomás | T-030 | pendiente | Flujos y correos anonimizados en `evidencia/datos/corpus/` con fecha |
 | T-032 | Anotación, segundo anotador y kappa | Tomás + analista-evidencia | T-027, T-031 | pendiente | κ por patrón calculado por script |
-| T-033 | Prototipo N1–N3 y soporte | Tomás (repo del prototipo) | T-030 | pendiente | Criterios V2/V3 ejecutables |
+| T-033 | Prototipo N1–N3 y soporte (el prototipo todavía no existe; se propone arrancarlo al cerrar T-030) | Tomás (repo del prototipo) | T-030 | pendiente | Criterios V2/V3 ejecutables |
 | T-034 | Evaluación V1 a V5 y análisis | Tomás + analista-evidencia | T-032, T-033 | pendiente | Resultados en `evidencia/resultados/` con metadatos |
 
 ## F4 y F5

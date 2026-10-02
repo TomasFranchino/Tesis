@@ -55,3 +55,24 @@ Registradas antes de aplicarlas. Referencias B1 y B2: `gestion/DIAGNOSTICO.md` �
   - Definición de problema: ubicación del costo de oportunidad y del impacto emocional (hoy en "contexto y limitaciones").
   - Aclarar el alcance de "sin código" (se registró como "todavía no hay prototipo").
 - **Próximo paso recomendado:** Tomás revisa el PR y responde los pendientes; luego T-003 (etiquetar SP1–SP4), T-016 (recalcular sensibilidad del ADR-07, con fichas de Ollama por T-006) y T-028.
+
+---
+
+## 2026-10-02 — Segunda parte: decisiones sobre los pendientes del PR #1
+
+El PR #1 fue integrado por Tomás. Esta parte se trabajó sobre la misma rama mediante la API de GitHub, sin comandos locales (indicación de Tomás).
+
+- **Decisiones de Tomás (textuales, resumidas):**
+  - **Bloqueante de RF-28:** "El patrón de *sneaking* (permanencia oculta) siempre debe quedar registrado por obligación legal en el correo de confirmación de la suscripción. Al hacer que el módulo de IA analice ese correo inicial, se mantiene el alcance técnico dentro de lo factible (parseo de emails con el LLM local) y se cierra el ciclo del producto: se detecta la trampa contractual en el alta y se previene el cobro abusivo en la baja mediante la tarjeta virtual."
+  - **`Objetivos.md`:** se autoriza su actualización.
+  - **"Sin código":** el prototipo todavía no existe; Tomás está abierto a que se proponga arrancarlo cuando sea necesario.
+- **Aplicado** (commit `b03c629`): Objetivos v2.0 (vigente), Contribución v0.4, Requisitos v1.2 (RF-28 sobre el correo de confirmación; RNF-04 cubre los correos), Plan v1.2 (corpus de correos, §2.5 validación de la alerta, amenaza de pocos positivos). Tablero: T-028 reformulada, T-029 nueva, T-031 y T-033 ajustadas.
+- **Observaciones del orquestador, dejadas como marcadores en los insumos:**
+  - La obligación legal invocada no tiene ficha: `[[CITA PENDIENTE]]` en Contribución §5.2 → T-029. Si la norma no existe o no alcanza a todos los servicios, el argumento cambia.
+  - El correo de confirmación llega **después** del alta, por lo que la alerta deja de ser "previa a la contratación" (B1 c): `[[DECISIÓN]]` en Contribución §5.2 (A: alerta temprana vinculada al derecho de revocación; B: conservar también el análisis del flujo de alta). Recomendación: A. En los insumos se usó el nombre neutro "alerta de permanencia o costos ocultos".
+  - Forma de ingreso del correo: `[[DECISIÓN]]` en Contribución §5.1 (A: importación manual; B: IMAP/Gmail API). Recomendación: A.
+  - Umbral de la alerta y correos adicionales con permanencia documentada: `[[DECISIÓN]]` en Plan §2.5 y §9.
+- **Propuesta sobre el prototipo:** arrancarlo al cerrar T-028 y T-030 (esquema A1), porque el esquema define la estructura de datos de todos los módulos. Se registró en T-033.
+- **No verificado en esta parte:** `check_ids.py` no se ejecutó (sin comandos locales). No se introdujeron identificadores nuevos de las familias que audita; queda para la próxima sesión local. `Arquitectura.md` (ADR-02, trazabilidad de RNF-04) no menciona todavía los correos de confirmación: ajuste menor pendiente.
+- **Decisiones pendientes:** momento de la alerta; forma de ingreso del correo; prioridad de RF-28; umbral de la alerta; modelo, tamaño y hardware del LLM local; K2 de S4 en ADR-07; descarte de C#; frases sobre DAZN y Telecentro en 1.1; ubicación del impacto emocional en la Definición de problema.
+- **Próximo paso recomendado:** T-029 (verificar la norma) antes de cualquier redacción del capítulo 1 que use el argumento; luego T-028, T-003 y T-016.
