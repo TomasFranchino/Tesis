@@ -7,7 +7,7 @@ Fase actual: **F0 — Saneamiento**. Referencias B1–B3 e I1–I10: `gestion/DI
 
 | ID | Tarea | Agente | Depende de | Estado | Criterio de cierre |
 |----|-------|--------|-----------|--------|--------------------|
-| T-001 | Reorganizar el repositorio (`scripts/reorganizar_repo.py`) | orquestador | — | pendiente | Carpetas creadas; históricos en `archivo/`; commit |
+| T-001 | Reorganizar el repositorio (`scripts/reorganizar_repo.py`) | orquestador | — | en revisión | Carpetas creadas; históricos en `archivo/`; commit |
 | T-002 | Resolver colisión A1–A5 aportes vs. antecedentes (I1) | redactor | T-001, decisión de nomenclatura | espera decisión | `check_ids.py` sin colisiones |
 | T-003 | Etiquetar subpreguntas SP1–SP4 en Contribución §2 (I2) | redactor | T-001 | pendiente | `check_ids.py` sin referencias rotas |
 | T-004 | Verificar con fuente primaria las 10 correcciones de Estado del arte §7 (I3) | investigador-fuentes | T-001 | pendiente | Ficha por corrección; veredicto por cada una |
@@ -21,15 +21,16 @@ Fase actual: **F0 — Saneamiento**. Referencias B1–B3 e I1–I10: `gestion/DI
 
 | ID | Tarea | Agente | Depende de | Estado | Criterio de cierre |
 |----|-------|--------|-----------|--------|--------------------|
-| T-010 | Rechazo del cobro vs. obligación contractual (B1): análisis de opciones de alcance | revisor-tribunal → Tomás | F0 | pendiente | Decisión registrada en BITÁCORA y aplicada en Contribución §4 y §5.5 |
-| T-011 | Verificar Jev / TypeSafe AI: documentación, SDK, tipos de pregunta ("Choice", "Noul"), límites, términos para publicar (B2) | investigador-fuentes | F0 | pendiente | Ficha por afirmación; ADR-07 K2 recalculado si cambia algo |
+| T-010 | Rechazo del cobro vs. obligación contractual (B1): análisis de opciones de alcance | revisor-tribunal → Tomás | F0 | en revisión | Decisión registrada en BITÁCORA y aplicada en Contribución §4 y §5.5 |
+| T-011 | Retirar Jev y reformular SP2 (B2: LLM local con Ollama vs. línea base heurística) | redactor | F0 | en revisión | Sin menciones a Jev, TypeSafe ni "decisión estructurada" fuera de `archivo/`; SP2, A5, RF-04/05, ADR-02 y Plan §2.4 reformulados |
 | T-012 | Mapear los 7 patrones a Gray 2018, Mathur 2019 y Nembaware y Sousa 2025 | investigador-fuentes | T-006 | pendiente | Tabla de mapeo con justificación de inclusión/exclusión |
 | T-013 | Definición operativa de niveles de riesgo para el anotador (B3) | redactor → Tomás | T-012 | espera decisión | Criterio independiente de la fórmula del sistema |
 | T-014 | Corregir la comparación de umbrales binario vs. por tipo (I4) | redactor | T-006 | pendiente | Umbrales contrastados con métricas del mismo tipo |
 | T-015 | Antecedentes nacionales y locales (I7) | investigador-fuentes | F0 | pendiente | Registro de búsqueda en ≥ 4 repositorios; fichas o resultado negativo documentado |
-| T-016 | Script del análisis de sensibilidad del ADR-07 (I8) | analista-evidencia | — | pendiente | Script reproduce los porcentajes de la tabla 7.6 |
+| T-016 | Script del análisis de sensibilidad del ADR-07 (I8) | analista-evidencia | T-019 | pendiente | Script recalcula la tabla 7.6 con la tabla 7.5 vigente (K2 redefinido) |
 | T-017 | Consultas al profesor: índice ajustado, umbrales, pesos ADR-07, enfoque del marco teórico, segundo anotador | Tomás | — | pendiente | Respuestas registradas en BITÁCORA |
 | T-018 | Revisión de tribunal (Opus) sobre `insumos/` completos | revisor-tribunal | T-010 a T-014 | pendiente | Sin BLOQUEANTES |
+| T-019 | Recalcular ADR-07 sin Jev (K2 = "integración con LLM local y validación de esquemas") | redactor → Tomás | T-011 | en revisión | Tabla 7.5 recalculada; si cambia el ganador, `[[DECISIÓN]]` sin cambiar 7.7 |
 
 ## F2 — Capítulos 1–3 (en paralelo con F3)
 
@@ -43,12 +44,13 @@ Fase actual: **F0 — Saneamiento**. Referencias B1–B3 e I1–I10: `gestion/DI
 | T-025 | Estado del arte y brecha (2.6) | redactor | T-012, T-014, T-015 | pendiente | Compuerta F2 para el capítulo |
 | T-026 | Capítulo 3 Metodología | redactor | T-017 | pendiente | Compuerta F2 para el capítulo |
 | T-027 | Guía de etiquetado (anexo) | redactor → Tomás | T-012, T-013 | pendiente | Definición operativa y ejemplos ± por patrón |
+| T-028 | Bloque de condiciones de contratación en el esquema A1 (permanencia, penalidad, renovación automática, precio tras la prueba) — sustenta la alerta previa a la contratación (B1 c) | redactor → Tomás | T-010 | pendiente | Bloque especificado en Contribución §5 y listo para incorporar en T-030 |
 
 ## F3 — Evidencia (camino crítico; trabajo principal de Tomás)
 
 | ID | Tarea | Agente | Depende de | Estado | Criterio de cierre |
 |----|-------|--------|-----------|--------|--------------------|
-| T-030 | Esquema JSON del flujo de cancelación (A1) versionado | Tomás (+ Claude Code en el repo del prototipo) | T-012 | pendiente | Esquema publicado y validado con 2 flujos |
+| T-030 | Esquema JSON del flujo de cancelación (A1) versionado | Tomás (+ Claude Code en el repo del prototipo) | T-012, T-028 | pendiente | Esquema publicado y validado con 2 flujos |
 | T-031 | Captura del corpus (15–20 servicios) | Tomás | T-030 | pendiente | Flujos en `evidencia/datos/corpus/` con fecha |
 | T-032 | Anotación, segundo anotador y kappa | Tomás + analista-evidencia | T-027, T-031 | pendiente | κ por patrón calculado por script |
 | T-033 | Prototipo N1–N3 y soporte | Tomás (repo del prototipo) | T-030 | pendiente | Criterios V2/V3 ejecutables |

@@ -1,7 +1,7 @@
 # Arquitectura y decisiones de diseño — SuscripGuard
 
-> **Estado:** borrador v0.2 (29/09/2026) — decisiones **propuestas**, pendientes de revisión. v0.2: ADR-07 y ADR-08 reescritos con análisis multicriterio.
-> Responde a los puntos 3 y 4 de la devolución de la Entrega 1: cada decisión se justifica a partir de requisitos concretos de *Requisitos.md* v1.0, no de las tecnologías disponibles.
+> **Estado:** borrador v0.3 (02/10/2026) — decisiones **propuestas**, pendientes de revisión. v0.2: ADR-07 y ADR-08 reescritos con análisis multicriterio. v0.3: aplicadas decisiones B1 y B2; ADR-02 reescrito (puerto Clasificador con adaptadores heurístico y LLM local); ADR-07 recalculado con K2 redefinido.
+> Responde a los puntos 3 y 4 de la devolución de la Entrega 1: cada decisión se justifica a partir de requisitos concretos de *Requisitos.md* v1.1, no de las tecnologías disponibles.
 > Formato: registros de decisión de arquitectura (ADR) abreviados.
 
 ---
@@ -10,7 +10,7 @@
 
 | Factor | Origen | Consecuencia |
 |--------|--------|--------------|
-| Clasificador intercambiable y dependencia de un servicio externo en acceso anticipado | RNF-01, RF-05, riesgo de Jev | Aislar el clasificador detrás de una interfaz propia. |
+| Clasificador intercambiable: comparación entre un LLM local (Ollama) y una línea base heurística | RNF-01, RF-05, SP2 | Aislar el clasificador detrás de una interfaz propia. |
 | Reglas deterministas, trazables y con control de concurrencia (E10) | RNF-02, RNF-03 | Evaluación de reglas en código propio, sobre datos con consistencia transaccional. |
 | Autorización independiente de servicios externos, p95 < 1 s | RNF-08 | La ruta de autorización no invoca al clasificador ni a la red externa. |
 | Vencimientos puntuales que sobreviven a reinicios | RNF-07 | Planificación persistida, no en memoria. |
@@ -35,13 +35,13 @@
                          │   ├─► Detección de dark patterns (N1) ┘   Emulador de tarjetas (N3) ◄── Bóveda  │
                          │   │        │ puerto «Clasificador»           │ puerto «Emisor»        (cifrado) │
                          │   │        ├─ adaptador heurístico           ├─ adaptador simulado              │
-                         │   │        ├─ adaptador Jev ──────────────┐  └─ adaptador sandbox (opcional)    │
-                         │   │        └─ adaptador LLM local (opc.)  │                                     │
+                         │   │        └─ adaptador LLM local ────────┐  └─ adaptador sandbox (opcional)    │
+                         │   │                                       │                                     │
                          │   └─► Notificaciones ◄── Planificador (barrido periódico sobre la base)        │
                          └──────────────────────────────────────────┼───────────────────────────────────────┘
-                                                                    │ solo flujos del corpus (datos públicos)
+                                                                    │ interfaz propia (misma máquina)
   Comercio simulado (proceso aparte) ──► endpoint de autorización   ▼
-                                                            TypeSafe AI (externo)
+                                                            Ollama (LLM local, proceso en la misma máquina)
   Corpus versionado (JSON + etiquetas, repositorio) ──► importación (RF-01) y evaluación por lotes (RF-09)
 ```
 
@@ -70,7 +70,7 @@
 
 **Justificación.** La modificabilidad que piden los requisitos se obtiene con límites internos bien definidos (ADR-02), sin pagar el costo de la distribución. La única ventaja propia de los microservicios, el escalado y despliegue independientes, no responde a ningún requisito (RNF-14). Además, la consistencia de la autorización es más simple y verificable en un solo proceso.
 
-**Excepciones.** El **comercio simulado** corre como proceso aparte porque representa un actor externo: así la autorización se prueba a través de su interfaz real. El **clasificador externo** es, por definición, un servicio remoto.
+**Excepciones.** El **comercio simulado** corre como proceso aparte porque representa un actor externo: así la autorización se prueba a través de su interfaz real. El **LLM local (Ollama)** también corre como proceso aparte, pero en la misma máquina, y se invoca a través del adaptador del puerto *Clasificador* (ADR-02); no es un servicio remoto.
 
 **Consecuencias.**
 - (+) Menos infraestructura; pruebas de extremo a extremo más simples.
@@ -84,11 +84,11 @@
 
 **Estado:** Propuesto · **Requisitos:** RF-05, RNF-01, RF-21, RNF-04
 
-**Decisión.** El módulo N1 define un puerto *Clasificador* (entrada: paso del flujo y patrón; salida: etiqueta, confianza y evidencia) con tres adaptadores: heurístico, Jev y LLM local (opcional). El módulo N3 define un puerto *Emisor* con dos adaptadores: simulado y *sandbox* de un proveedor real (opcional).
+**Decisión.** El módulo N1 define un puerto *Clasificador* (entrada: paso del flujo y patrón; salida: etiqueta, confianza y evidencia) con dos adaptadores: heurístico y LLM local (Ollama). El módulo N3 define un puerto *Emisor* con dos adaptadores: simulado y *sandbox* de un proveedor real (opcional).
 
-**Alternativas.** Invocar el servicio externo directamente desde la lógica de negocio: más simple al comienzo, pero ata la tesis a un proveedor en acceso anticipado e impide la comparación que exige SP2.
+**Alternativas.** (a) Invocar el LLM local directamente desde la lógica de negocio: más simple al comienzo, pero acopla el módulo a un entorno de ejecución y a un modelo concretos e impide la comparación que exige SP2. (b) Delegar la clasificación en un servicio remoto de terceros: enviaría el contenido de los flujos fuera de la máquina y haría depender los resultados de la disponibilidad y de los cambios del proveedor; queda fuera del diseño por la decisión B2.
 
-**Consecuencias.** La comparación entre clasificadores (V1) se reduce a ejecutar la misma evaluación con distinta configuración. El adaptador de Jev es el **único** punto del sistema con salida a Internet desde N1, lo que facilita verificar RNF-04.
+**Consecuencias.** La comparación entre clasificadores (V1) se reduce a ejecutar la misma evaluación con distinta configuración. El adaptador del LLM local invoca un proceso que corre en la misma máquina, por lo que el contenido de los flujos analizados no sale de ella; eso facilita verificar RNF-04. Como la salida de un modelo de lenguaje puede variar entre ejecuciones, el adaptador debe fijar y registrar la versión del modelo, la temperatura y la semilla (a definir; ver pendientes) y validar la respuesta contra el esquema esperado antes de entregarla al puerto.
 
 ---
 
@@ -159,7 +159,7 @@ Además, el **esquema del flujo de cancelación** (aporte A1) atraviesa todo el 
 
 | Criterio | Por qué no discrimina |
 |----------|-----------------------|
-| Rendimiento | RNF-08 (p95 < 1 s en la autorización) lo cumple cualquier lenguaje de uso general con holgura; la latencia de la detección (RNF-09) la domina la llamada de red al clasificador, no el lenguaje. |
+| Rendimiento | RNF-08 (p95 < 1 s en la autorización) lo cumple cualquier lenguaje de uso general con holgura; la latencia de la detección (RNF-09) la domina la inferencia del modelo local, que depende del hardware y no del lenguaje del sistema. |
 | Bibliotecas estadísticas | La evaluación se desacopla: el sistema exporta las predicciones (JSON/CSV) y el análisis (métricas, *bootstrap*, McNemar, kappa) se realiza con scripts aparte en Python con bibliotecas establecidas (SciPy, statsmodels, scikit-learn), sea cual sea el lenguaje del sistema. Así se usan implementaciones validadas de los métodos estadísticos y se evita programarlos a mano. |
 | Popularidad o mercado laboral | No responde a ningún requisito del sistema. |
 | Experiencia previa del tesista | Excluida por decisión metodológica. |
@@ -168,10 +168,10 @@ Además, el **esquema del flujo de cancelación** (aporte A1) atraviesa todo el 
 
 | Opción | Resultado | Motivo |
 |--------|-----------|--------|
-| Python, TypeScript, Kotlin | Pasan a la evaluación | Cubren ambas cargas de trabajo; Python y TypeScript cuentan con SDK oficial de TypeSafe AI; Kotlin ofrece el sistema de tipos más estricto de los candidatos para el dominio de pagos y tiene integración con Jev mediante Spring AI. |
+| Python, TypeScript, Kotlin | Pasan a la evaluación | Cubren ambas cargas de trabajo; Python y TypeScript cuentan con biblioteca cliente de Ollama `[[CITA PENDIENTE: bibliotecas cliente oficiales de Ollama para Python y JavaScript/TypeScript]]`; Kotlin ofrece el sistema de tipos más estricto de los candidatos para el dominio de pagos y tiene integración con Ollama mediante Spring AI `[[CITA PENDIENTE: soporte de Ollama en Spring AI]]`. |
 | Java | Representado por Kotlin | Misma plataforma; Kotlin agrega clases selladas con exhaustividad y seguridad frente a nulos. |
-| C# (.NET) | Descartado | Perfil similar a Kotlin, sin SDK ni integración documentada con el clasificador. |
-| Go | Descartado | Sin tipos suma ni verificación de exhaustividad; sin SDK del clasificador. |
+| C# (.NET) | Descartado | Perfil similar a Kotlin. `[[DECISIÓN: el motivo anterior (sin SDK ni integración documentada con el clasificador) deja de sostenerse sin verificación, ya que el clasificador es ahora un LLM local y no un servicio con SDK propio. Opciones: A) mantener el descarte solo por perfil similar a Kotlin (representado por la plataforma JVM, sin aportar un candidato distinto); B) incluir C# como quinta combinación y evaluarla. Recomendación: A, previa verificación de si existe cliente de Ollama para .NET]]` `[[CITA PENDIENTE: existencia y madurez de clientes de Ollama para .NET]]` |
+| Go | Descartado | Sin tipos suma ni verificación de exhaustividad. Se elimina el motivo anterior (sin SDK del clasificador); el motivo restante basta para sostener el descarte. |
 | Rust | Descartado | Máxima seguridad de tipos, pero el costo de desarrollo no se compensa: ningún requisito de rendimiento o memoria lo justifica. |
 
 Para el frontend, el navegador impone **TypeScript** (JavaScript con tipado estático) salvo que la interfaz se genere en el servidor. Por eso se evalúa también una variante con renderizado en el servidor (plantillas + htmx), que evita un segundo lenguaje.
@@ -187,7 +187,7 @@ Para el frontend, el navegador impone **TypeScript** (JavaScript con tipado est�
 | Id | Criterio | Requisitos de origen | Peso |
 |----|----------|----------------------|:----:|
 | K1 | **Correctitud del dominio de pagos:** tipado estático verificado por el compilador, tipos suma con exhaustividad, aritmética monetaria segura, soporte de transacciones. | RNF-02, RNF-03, RF-13, RF-19, E10 | 25 |
-| K2 | **Integración con el clasificador y esquemas:** SDK oficial de Jev, validación de esquemas JSON y generación del esquema a partir del código. | RF-01, RF-04, RF-05 | 15 |
+| K2 | **Integración con LLM local y validación de esquemas:** biblioteca cliente de Ollama en el lenguaje del backend, salida estructurada con esquema JSON, validación de esquemas JSON y generación del esquema a partir del código. | RF-01, RF-04, RF-05 | 15 |
 | K3 | **Coherencia de contratos:** un único esquema de flujo, informe y política compartido entre captura, detector, API e interfaz; cantidad de lenguajes del sistema. | RF-01, RF-06, RF-10, RF-25 | 15 |
 | K4 | **Verificabilidad:** pruebas basadas en propiedades, pruebas de integración contra una base real y de extremo a extremo. | V2, V3, RNF-02 | 15 |
 | K5 | **Calidad de la interfaz:** disponibilidad de componentes accesibles y maduros. | RNF-11, V5 | 10 |
@@ -201,18 +201,20 @@ K1 tiene el mayor peso porque N2 y N3 son la parte del núcleo que debe cumplirs
 | Criterio (peso) | S1 Python + React | S2 Python + htmx | S3 TypeScript + React | S4 Kotlin + React |
 |-----------------|:----:|:----:|:----:|:----:|
 | K1 (25) | 3 | 3 | 4 | **5** |
-| K2 (15) | **5** | **5** | **5** | 3 |
+| K2 (15) | **5** | **5** | **5** | 4 |
 | K3 (15) | 3 | 4 | **5** | 3 |
 | K4 (15) | **5** | **5** | 4 | **5** |
 | K5 (10) | **5** | 3 | **5** | **5** |
 | K6 (10) | 4 | 4 | 4 | **5** |
 | K7 (10) | 4 | **5** | 4 | 3 |
-| **Puntaje ponderado** | 4,00 | 4,05 | **4,40** | 4,20 |
+| **Puntaje ponderado** | 4,00 | 4,05 | **4,40** | 4,35 |
+
+Con K2 redefinido, S3 sigue primero, pero la ventaja sobre S4 se reduce de 0,20 a 0,05 puntos: un 5 en K2 para S4 (en lugar de 4) lo haría ganar (4,50 contra 4,40). El puntaje de K2 de S4 pasa a ser, por lo tanto, el dato más sensible de la tabla y debe respaldarse con las fuentes pendientes del fundamento.
 
 **Fundamento de los puntajes:**
 
 - **K1.** *Kotlin (5):* clases selladas con `when` exhaustivo verificado por el compilador, seguridad frente a nulos y `BigDecimal`. *TypeScript (4):* uniones discriminadas con verificación de exhaustividad en modo estricto. Tiene dos debilidades conocidas con mitigación estándar: los tipos desaparecen en tiempo de ejecución (se valida en los bordes con esquemas) y `number` es de coma flotante (los importes se representan en enteros de unidades mínimas, p. ej. centavos). *Python (3):* la verificación de tipos (mypy) es opcional y externa al lenguaje; el programa corre aunque los tipos sean incorrectos.
-- **K2.** TypeSafe AI publica SDK oficiales para Python y para JavaScript/TypeScript sobre una API HTTP. Kotlin depende de la integración de Spring AI o de un cliente HTTP propio. Pydantic (Python) y Zod (TypeScript) validan el esquema y generan el esquema JSON a partir del código.
+- **K2.** *Python (5) y TypeScript (5):* Ollama ofrece bibliotecas cliente para Python y para JavaScript `[[CITA PENDIENTE: bibliotecas cliente oficiales de Ollama (Python, JavaScript)]]` y admite salida estructurada restringida a un esquema JSON `[[CITA PENDIENTE: salida estructurada con esquema JSON en Ollama]]`; Pydantic (Python) y Zod (TypeScript) validan el esquema y generan el esquema JSON a partir del código `[[CITA PENDIENTE: generación de esquema JSON desde Pydantic y desde Zod]]`. Ambos lenguajes alcanzan el máximo porque combinan cliente, salida estructurada y validación en la misma herramienta. *Kotlin (4):* depende de la integración de Spring AI con Ollama o de un cliente HTTP propio `[[CITA PENDIENTE: soporte de Ollama y de salida estructurada en Spring AI]]`; la validación y la generación de esquemas existen en la plataforma, pero requieren bibliotecas adicionales `[[CITA PENDIENTE: bibliotecas de esquema JSON para Kotlin/JVM]]`. Se baja un punto, y no dos como en la versión anterior, porque ya no se compara contra un SDK oficial del servicio sino contra una API local con un cliente HTTP simple y una integración de framework disponibles.
 - **K3.** *S3 (5):* un único paquete de tipos y esquemas compartido por captura, detector, API e interfaz; además, Playwright, la herramienta de captura, tiene a TypeScript como lenguaje principal. *S2 (4):* un solo lenguaje, pero la interfaz queda en plantillas sin tipado. *S1 y S4 (3):* dos lenguajes; el contrato se sincroniza generando tipos desde OpenAPI, lo que funciona pero agrega un paso que puede desincronizarse.
 - **K4.** Python (Hypothesis) y la JVM (Testcontainers, jqwik/Kotest) tienen las herramientas más maduras. TypeScript cuenta con fast-check y Testcontainers para Node, algo menos maduras.
 - **K5.** React dispone de bibliotecas de componentes accesibles maduras (p. ej. React Aria, Radix). Con htmx la accesibilidad depende de HTML escrito a mano.
@@ -228,7 +230,9 @@ K1 tiene el mayor peso porque N2 y N3 son la parte del núcleo que debe cumplirs
 | 100 000 combinaciones aleatorias de pesos, variación amplia | S3 gana en el 80,1 %; S4 en el 18,6 %; S2 en el 1,2 %. |
 | Punto de inversión | S4 supera a S3 solo si K1 pesa ≥ 32 y K3 ≤ 8, es decir, si se considera que la seguridad de tipos del dominio vale más del triple que tener un contrato único. |
 
-La decisión es **robusta**: solo cambia si se prioriza la seguridad de tipos del dominio de pagos muy por encima de todo lo demás. En ese caso la alternativa es S4 (Kotlin), no Python.
+`[[RESULTADO PENDIENTE: recalcular el análisis de sensibilidad con K2 redefinido (T-016)]]` Las cuatro filas anteriores se calcularon con el K2 anterior (SDK de un servicio externo) y no valen para la tabla 7.5 vigente; en particular, con S4 a 0,05 puntos de S3, la conclusión de robustez que sigue queda en suspenso hasta el recálculo.
+
+La conclusión de la versión anterior era que la decisión solo cambia si se prioriza la seguridad de tipos del dominio de pagos muy por encima de todo lo demás, y que en ese caso la alternativa es S4 (Kotlin), no Python. `[[RESULTADO PENDIENTE: confirmar o corregir esta conclusión tras el recálculo]]`
 
 #### 7.7. Decisión
 
@@ -248,7 +252,7 @@ La decisión es **robusta**: solo cambia si se prioriza la seguridad de tipos de
 
 **Consecuencias.**
 - (+) Un solo lenguaje en el sistema y un contrato único para el esquema del flujo, que es a la vez aporte de la tesis y eje de todos los módulos.
-- (+) SDK oficial del clasificador y herramienta de captura en su lenguaje principal.
+- (+) Biblioteca cliente de Ollama `[[CITA PENDIENTE: biblioteca cliente oficial de Ollama para JavaScript/TypeScript]]` y herramienta de captura en su lenguaje principal.
 - (–) Menor garantía del compilador que Kotlin en el dominio de pagos. Se compensa con las mitigaciones anteriores y con la suite de escenarios y pruebas basadas en propiedades de V2, que valida RNF-02 al 100 %.
 - (–) El análisis estadístico queda en un segundo lenguaje, pero fuera del sistema y solo como herramienta de análisis.
 
@@ -284,14 +288,13 @@ La decisión es **robusta**: solo cambia si se prioriza la seguridad de tipos de
 | PostgreSQL | Se mantiene | ADR-04 |
 | Redis (colas y caché) | Eliminada | Sin requisito de caché; colas innecesarias por ADR-05 |
 | Celery / Temporal | Eliminadas | ADR-05 |
-| Ollama + LLM local | Opcional | Tercer clasificador en V1 o módulo complementario de correos (RF-27) |
+| Ollama + LLM local | Incorporada | Adaptador del clasificador (ADR-02), comparado en V1 con la línea base heurística; modelo y tamaño pendientes |
 | Gmail API / IMAP | Fuera del núcleo | Solo si se implementa RF-27 (Could) |
 | Stripe Issuing / Lithic | Adaptador opcional | RF-21 (Could); el emisor principal es el simulado |
 | OAuth2 + JWT + 2FA | Se reduce a autenticación con sesión o JWT | RNF-06 exige autenticación y control de acceso; 2FA e inicio de sesión con terceros no responden a ningún requisito |
 | WebSockets | Eliminado | No hay requisito de tiempo real en la interfaz |
 | Grafana + Prometheus | Eliminadas | Fuera de alcance (RNF-14) |
 | Docker Compose | Se mantiene | ADR-09 |
-| **Jev (TypeSafe AI)** | Incorporada | Adaptador del clasificador (ADR-02) |
 
 ---
 
@@ -302,7 +305,7 @@ La decisión es **robusta**: solo cambia si se prioriza la seguridad de tipos de
 | RNF-01 / RF-05 | ADR-02, ADR-07 |
 | RNF-02 | ADR-01, ADR-03, ADR-04, ADR-07 (mitigaciones de tipado) |
 | RNF-03 | ADR-03 |
-| RNF-04 | ADR-02 (única salida externa en N1) |
+| RNF-04 | ADR-02 (el LLM local no envía el contenido de los flujos fuera de la máquina) |
 | RNF-05 | ADR-06 |
 | RNF-07 | ADR-05 (+ validación en el cobro, ADR-03) |
 | RNF-08 | ADR-01, ADR-03 |
@@ -318,6 +321,10 @@ La decisión es **robusta**: solo cambia si se prioriza la seguridad de tipos de
 ## 6. Pendientes
 
 - Revisar con el profesor de la materia los pesos del análisis multicriterio de ADR-07.
-- Revisar en la documentación de TypeSafe AI las limitaciones conocidas de la versión del modelo (jev-1.13) antes de diseñar las preguntas al clasificador.
-- Verificar en la documentación de TypeSafe AI el SDK disponible, los límites de uso y los términos para publicar resultados.
+- `[[DECISIÓN: modelo y tamaño del LLM local — opciones a confirmar]]`.
+- `[[DATO PENDIENTE: hardware donde corre el LLM local]]`; condiciona la latencia de detección (RNF-09) y el tamaño de modelo viable.
+- Fijar y registrar la versión (etiqueta) del modelo, la temperatura y la semilla del LLM local, para acotar la variabilidad entre ejecuciones (ver ADR-02 y *Plan de validacion.md*, §2.4).
+- Decidir si Ollama corre dentro del despliegue con Docker Compose (ADR-09) o en el equipo anfitrión.
+- Respaldar con fuentes (fichas en `bibliografia/fichas/`) las afirmaciones sobre Ollama y sus bibliotecas cliente del ADR-07, en especial el puntaje de K2 de S4, que define el ganador por 0,05 puntos.
+- Definir cómo se materializa RF-28 (alerta previa a la contratación) en los módulos y puertos existentes.
 - Elaborar el modelo de datos (entidad–relación) y el diagrama de componentes formal (UML o C4) para el capítulo 3.3.
