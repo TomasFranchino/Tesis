@@ -2,6 +2,7 @@
 
 Estados: `propuesta` · `pendiente` · `en curso` · `en revisión` · `espera decisión` · `hecha` (solo Tomás) · `descartada`.
 Fase actual: **F0 — Saneamiento**. Referencias B1–B3 e I1–I10: `gestion/DIAGNOSTICO.md`.
+Nota 22/11/2026: por pedido de Tomás se adelantó un primer borrador completo de la memoria en `tesis/` (F2), sin esperar el cierre de F1. Los capítulos quedan "en curso" hasta que se resuelvan las decisiones y fuentes pendientes.
 
 ## F0 — Saneamiento
 
@@ -37,13 +38,13 @@ Fase actual: **F0 — Saneamiento**. Referencias B1–B3 e I1–I10: `gestion/DI
 
 | ID | Tarea | Agente | Depende de | Estado | Criterio de cierre |
 |----|-------|--------|-----------|--------|--------------------|
-| T-020 | Esqueleto de `tesis/` con el índice validado | redactor | T-017 | pendiente | Un archivo por capítulo con títulos |
-| T-021 | Reescribir la definición del problema con fuentes (I6) | redactor | T-010, T-005 | pendiente | Sin lenguaje valorativo; cada daño citado o eliminado |
-| T-022 | Justificación desde cero (I6) | redactor → Tomás | T-021 | pendiente | Borrador + reescritura de Tomás |
-| T-023 | Capítulo 1 completo | redactor | T-021, T-022 | pendiente | Compuerta F2 para el capítulo |
-| T-024 | Marco teórico 2.1–2.5 (I5) | investigador-fuentes + redactor | T-017 | pendiente | Compuerta F2 para el capítulo |
-| T-025 | Estado del arte y brecha (2.6) | redactor | T-012, T-014, T-015 | pendiente | Compuerta F2 para el capítulo |
-| T-026 | Capítulo 3 Metodología | redactor | T-017 | pendiente | Compuerta F2 para el capítulo |
+| T-020 | Esqueleto de `tesis/` con el índice validado | redactor | T-017 | en revisión | Un archivo por capítulo con títulos (hecho con el índice de `guias/Estructura del trabajo final.md`; falta validarlo con el profesor) |
+| T-021 | Reescribir la definición del problema con fuentes (I6) | redactor | T-010, T-005 | en curso | Sin lenguaje valorativo; cada daño citado o eliminado (borrador en cap. 1, faltan fuentes) |
+| T-022 | Justificación desde cero (I6) | redactor → Tomás | T-021 | en curso | Borrador + reescritura de Tomás (borrador hecho; falta la reescritura) |
+| T-023 | Capítulo 1 completo | redactor | T-021, T-022 | en curso | Compuerta F2 para el capítulo |
+| T-024 | Marco teórico 2.1–2.5 (I5) | investigador-fuentes + redactor | T-017 | en curso | Compuerta F2 para el capítulo (borrador hecho; faltan fuentes para las bases teóricas) |
+| T-025 | Estado del arte y brecha (2.6) | redactor | T-012, T-014, T-015 | en curso | Compuerta F2 para el capítulo |
+| T-026 | Capítulo 3 Metodología | redactor | T-017 | en curso | Compuerta F2 para el capítulo (falta el encuadre metodológico) |
 | T-027 | Guía de etiquetado (anexo) | redactor → Tomás | T-012, T-013 | pendiente | Definición operativa y ejemplos ± por patrón |
 | T-028 | Bloque de condiciones de contratación en el esquema A1 (permanencia, penalidad, renovación automática, precio tras la prueba), extraído del correo de confirmación del alta — sustenta la alerta de permanencia o costos ocultos (RF-28) | redactor → Tomás | T-010 | pendiente | Bloque especificado (campos, tipos, valor "no informado") en Contribución §5 y listo para incorporar en T-030 |
 
@@ -55,7 +56,7 @@ Fase actual: **F0 — Saneamiento**. Referencias B1–B3 e I1–I10: `gestion/DI
 | T-031 | Captura del corpus (15–20 servicios), incluidos los correos de confirmación del alta | Tomás | T-030 | pendiente | Flujos y correos anonimizados en `evidencia/datos/corpus/` con fecha |
 | T-032 | Anotación, segundo anotador y kappa | Tomás + analista-evidencia | T-027, T-031 | pendiente | κ por patrón calculado por script |
 | T-033 | Prototipo N1–N3 y soporte (el prototipo todavía no existe; se propone arrancarlo al cerrar T-030) | Tomás (repo del prototipo) | T-030 | pendiente | Criterios V2/V3 ejecutables |
-| T-034 | Evaluación V1 a V5 y análisis | Tomás + analista-evidencia | T-032, T-033 | pendiente | Resultados en `evidencia/resultados/` con metadatos |
+| T-034 | Evaluación V1 a V6 y análisis | Tomás + analista-evidencia | T-032, T-033 | pendiente | Resultados en `evidencia/resultados/` con metadatos |
 
 ## F4 y F5
 
