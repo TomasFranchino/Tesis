@@ -1,7 +1,7 @@
 # Plan de validación — SuscripGuard
 
-> **Estado:** v1.1 (02/10/2026) — la v1.0 fue revisada y aprobada por el tesista (29/09/2026). v1.1: aplicadas decisiones B1 y B2 (SP2 compara un clasificador LLM local contra la línea base heurística; latencia dependiente del hardware local; amenaza de variabilidad del modelo local). **Los cambios de v1.1 están pendientes de revisión del tesista.** Responde al punto 5 de la devolución de la Entrega 1: cada componente importante se asocia con métricas concretas, un instrumento de medición y un criterio de aceptación.
-> Base: subpreguntas SP1–SP4 (*Contribucion y alcance.md*, sección 2), requisitos (*Requisitos.md* v1.1) y objetivo OE6.
+> **Estado:** v1.2 (02/10/2026) — la v1.0 fue revisada y aprobada por el tesista (29/09/2026). v1.1: aplicadas decisiones B1 y B2 (SP2 compara un clasificador LLM local contra la línea base heurística; latencia dependiente del hardware local; amenaza de variabilidad del modelo local). v1.2: corpus de correos de confirmación del alta y validación de la alerta de permanencia o costos ocultos (RF-28, §2.5). **Los cambios de v1.1 y v1.2 están pendientes de revisión del tesista.** Responde al punto 5 de la devolución de la Entrega 1: cada componente importante se asocia con métricas concretas, un instrumento de medición y un criterio de aceptación.
+> Base: subpreguntas SP1–SP4 (*Contribucion y alcance.md*, sección 2), requisitos (*Requisitos.md* v1.2) y objetivo OE6.
 > Los umbrales son **propuestos** y se ajustarán con el profesor de la materia (Román Zenobi), con el director/tutor una vez designado, y con los valores reportados en el estado del arte.
 
 ---
@@ -29,6 +29,7 @@ Se distingue entre **criterios de aceptación** (el prototipo debe cumplirlos) y
 
 - **Tamaño:** 15 a 20 servicios por suscripción, priorizando servicios con uso en Argentina y casos documentados.
 - **Unidad de análisis:** el par *(paso del flujo, patrón)*. Adicionalmente se evalúa el nivel *(flujo, patrón)* y el índice de riesgo por servicio.
+- **Correos de confirmación del alta (RF-28):** para cada servicio del corpus se conserva el correo de confirmación recibido al crear la cuenta de prueba, con los datos personales anonimizados. Se etiqueta, por campo, la presencia y el valor de las condiciones de contratación (permanencia mínima, penalidad por baja anticipada, renovación automática, precio tras la prueba). Ver §2.5.
 - **Guía de etiquetado:** definición operativa de cada uno de los 7 patrones, con ejemplos positivos y negativos, elaborada a partir de las taxonomías del estado del arte.
 - **Acuerdo entre anotadores:** un segundo anotador etiqueta de forma independiente al menos el 30 % del corpus. Segundo anotador propuesto: **Román Zenobi** (profesor de la materia Trabajo Final, no involucrado en el diseño del sistema), sujeto a su aceptación; alternativa: un compañero de carrera o docente del área.
 - **Protocolo de anotación ciega:** el segundo anotador recibe solo la guía de etiquetado y los flujos en formato legible; no accede a las etiquetas del tesista ni a las salidas del sistema. Antes de la anotación se hace una sesión de calibración con 1 flujo del conjunto de diseño, que se excluye del cálculo de kappa. Los desacuerdos se discuten **después** de calcular kappa y se resuelven para formar la verdad de referencia final.
@@ -61,6 +62,14 @@ El costo de los errores es asimétrico. Un **falso positivo** produce una polít
 - Se reportan las diferencias de F1 con intervalos de confianza por *bootstrap* y la prueba de McNemar sobre las predicciones pareadas.
 - Condiciones que se registran en cada ejecución del clasificador LLM local: modelo `[[DECISIÓN: modelo y tamaño del LLM local — opciones a confirmar]]`, versión o etiqueta, cuantización, temperatura, semilla y hardware `[[DATO PENDIENTE: hardware donde corre el LLM local]]`, además de la fecha. Se fijan para que la evaluación pueda repetirse, ya que la salida de un modelo de lenguaje puede variar entre ejecuciones y entre equipos.
 - La latencia (p50 / p95) se mide por separado para cada implementación y se reporta junto con el hardware, porque en el clasificador LLM local depende de este y no de la red.
+
+### 2.5. Alerta de permanencia o costos ocultos (RF-28)
+
+- **Instancias:** los correos de confirmación del alta del corpus (§2.1), con la misma partición diseño/prueba que los flujos del servicio correspondiente.
+- **Métricas:** precisión, *recall* y F1 de la extracción por campo (permanencia mínima, penalidad por baja anticipada, renovación automática, precio tras la prueba); precisión y *recall* de la alerta por servicio (presencia de permanencia o costos ocultos).
+- **Criterio de aceptación:** `[[DECISIÓN: umbral de la alerta — a acordar con el profesor; se recomienda priorizar el recall de la alerta por el mismo argumento de costo asimétrico de §2.3]]`.
+- **Correos que no informan una condición:** se etiquetan como "no informado", distinto de "ausente", para no contar como acierto la falta de información.
+- Se registran las mismas condiciones de ejecución del LLM local que en §2.4.
 
 ---
 
@@ -105,7 +114,7 @@ El costo de los errores es asimétrico. Un **falso positivo** produce una polít
 
 | Requisito | Instrumento | Criterio |
 |-----------|-------------|----------|
-| RNF-04 Privacidad | Registro e inspección del tráfico saliente durante la ejecución completa de las pruebas de extremo a extremo | 0 solicitudes externas con datos del usuario; el clasificador LLM local corre en la misma máquina, por lo que el contenido de los flujos no sale de ella |
+| RNF-04 Privacidad | Registro e inspección del tráfico saliente durante la ejecución completa de las pruebas de extremo a extremo, incluido el análisis de correos de confirmación | 0 solicitudes externas con datos del usuario; el clasificador LLM local corre en la misma máquina, por lo que ni el contenido de los flujos ni el de los correos sale de ella |
 | RNF-05 Datos de tarjeta | Búsqueda automatizada de números de tarjeta (patrón + verificación de Luhn) en base de datos, logs y respuestas de la API | 0 hallazgos en claro |
 | RNF-06 Seguridad de la aplicación | Escaneo dinámico (p. ej. OWASP ZAP) y revisión manual guiada por OWASP Top 10 | 0 hallazgos de severidad alta o crítica sin mitigar |
 
@@ -147,6 +156,7 @@ Demostración reproducible que recorre la contribución completa:
 | N1 Detección | SP1 | RF-07 | Exactitud del nivel de riesgo | Corpus etiquetado | ≥ 0,80 |
 | N1 Detección | SP2 | RF-05 | ΔF1 entre clasificadores | *Bootstrap* + McNemar | Se reporta |
 | N1 Detección | SP2 | RNF-09 | Latencia p95 y uso de recursos por flujo | Registro de ejecución (con hardware declarado) | < 30 s (sujeto a `[[DECISIÓN]]` de §2.3) |
+| N1 Alerta | SP1 | RF-28 | Precisión / *recall* por campo y de la alerta | Correos de confirmación etiquetados | Sujeto a `[[DECISIÓN]]` de §2.5 |
 | Corpus | SP1 | RF-08 | Kappa de Cohen | Doble anotación ≥ 30 % | ≥ 0,61 |
 | N2 Motor | SP3 | RF-11–16, RNF-02 | % de escenarios aprobados | Suite E01–E12 + pruebas por propiedades | 100 % |
 | N2 Motor | SP3 | RNF-07 | Desvío del vencimiento | Pruebas temporales | < 1 min |
@@ -164,6 +174,7 @@ Demostración reproducible que recorre la contribución completa:
 | Sesgo del anotador (el tesista diseña el sistema y etiqueta el corpus). | Segundo anotador independiente y cálculo de kappa. |
 | Sobreajuste de heurísticas y preguntas al corpus. | Conjunto de prueba reservado y no consultado durante el diseño. |
 | Variabilidad del modelo local: la salida del LLM puede cambiar entre ejecuciones, versiones del modelo, cuantizaciones o equipos. | Registro de modelo, versión, cuantización, temperatura, semilla y hardware (§2.4); parámetros fijados; repeticiones de la evaluación para estimar la variación `[[DECISIÓN: número de repeticiones por ejecución del clasificador LLM local]]`; línea base heurística determinista como referencia. |
+| Pocos casos positivos en la alerta: el alcance prioriza servicios sin permanencia, por lo que el corpus puede tener pocos correos con permanencia o costos ocultos. | Se reportan conteos absolutos junto con las métricas; `[[DECISIÓN: agregar correos de servicios con permanencia documentada solo para evaluar la alerta — recomendación: sí, si el corpus base tiene menos de 5 casos positivos]]`. |
 | El emulador no reproduce todas las condiciones de una red de pagos real. | Se declara el alcance simulado; adaptador para un *sandbox* real como demostración opcional. |
 | Muestra de usabilidad reducida y no representativa. | Se reporta como estudio exploratorio; perfil de participantes documentado. |
 
@@ -173,8 +184,8 @@ Demostración reproducible que recorre la contribución completa:
 
 - Consultar a Román Zenobi si acepta ser segundo anotador (y tener una alternativa).
 - Consultar con Román Zenobi los umbrales propuestos.
-- Redactar la guía de etiquetado.
+- Redactar la guía de etiquetado, incluidas las condiciones de contratación de los correos de confirmación (§2.5).
 - Buscar en el estado del arte las métricas reportadas por trabajos de detección automática de *dark patterns*, para contextualizar los umbrales de V1.
 - `[[DECISIÓN: modelo y tamaño del LLM local — opciones a confirmar]]` y `[[DATO PENDIENTE: hardware donde corre el LLM local]]`; de ambos depende el umbral de latencia (§2.3).
 - Definir el protocolo de fijación de versión, temperatura y semilla del LLM local y el número de repeticiones (§2.4, §9).
-- Definir cómo se valida la alerta previa a la contratación (RF-28), incluida su métrica y el corpus de flujos de alta que requeriría; el corpus de V1 se concibió con flujos de cancelación.
+- Umbral de aceptación de la alerta de permanencia o costos ocultos (§2.5).

@@ -1,5 +1,5 @@
 Definición de Objetivos para la Tesis de Ingeniería Informática
-> Actualizado el 29/09/2026 tras la devolución de la Entrega 1. Los objetivos vigentes están en la sección final "Objetivos (versión vigente)". Contribución central y alcance: ver *Contribucion y alcance.md*.
+> Actualizado el 02/10/2026 tras las decisiones B1 y B2 y el análisis del correo de confirmación del alta (ver *gestion/BITACORA.md*). Los objetivos vigentes están en la sección final "Objetivos (versión vigente)"; la versión del 29/09/2026 se conserva como historial. Contribución central y alcance: ver *Contribucion y alcance.md*.
 Preguntas a responder para lograr los objetivos:
 ¿Cuál es el conocimiento que se pretende alcanzar?
 
@@ -51,7 +51,7 @@ Ver sección 7 de Contribucion y alcance.md; se desarrollará en Plan de validac
 ¿Cuáles son las limitaciones técnicas o de recursos? (Ej: Acceso limitado a datos reales, tiempo de cómputo, etc.).
 Ver secciones 4.4 (fuera de alcance) y 6 (supuestos y riesgos) de Contribucion y alcance.md.
 
-## Objetivos (versión vigente — 29/09/2026)
+## Objetivos (versión del 29/09/2026 — reemplazada el 02/10/2026, se conserva como historial)
 
 **Título:** SuscripGuard: Control preventivo de suscripciones mediante tarjetas virtuales con políticas basadas en la detección de dark patterns
 
@@ -66,12 +66,29 @@ Diseñar, implementar y evaluar un prototipo de plataforma que prevenga cobros r
 5. Integrar los componentes en un prototipo web que permita al usuario registrar suscripciones, revisar el riesgo de cada servicio y gestionar sus tarjetas.
 6. Evaluar el prototipo en términos de precisión de detección, cumplimiento de reglas, rendimiento y usabilidad.
 
+## Objetivos (versión vigente — 02/10/2026)
+
+> **Estado:** v2.0 (02/10/2026), redactada por el orquestador con autorización de Tomás para actualizar este archivo; **pendiente de su revisión**. Cambios respecto de la v1 (29/09/2026): alcance acotado (B1 a), alerta de permanencia o costos ocultos a partir del correo de confirmación del alta (B1 c, decisión del 02/10/2026) y comparación LLM local vs. línea base heurística (B2). Los identificadores OE1–OE6 se conservan.
+
+**Título:** SuscripGuard: Control preventivo de suscripciones mediante tarjetas virtuales con políticas basadas en la detección de dark patterns
+
+### Objetivo General
+Diseñar, implementar y evaluar un prototipo de plataforma que prevenga cobros recurrentes no deseados en suscripciones digitales pagadas con tarjeta y sin permanencia mínima, incluidas las pruebas gratuitas, mediante tarjetas virtuales cuyas políticas de uso se configuran a partir de la detección automática de *dark patterns* en los flujos de cancelación de los servicios, y que alerte al usuario cuando el correo de confirmación del alta revele permanencia mínima o costos ocultos.
+
+### Objetivos Específicos
+1. Caracterizar los *dark patterns* presentes en flujos de cancelación de suscripciones y definir un subconjunto detectable junto con un esquema de representación estructurada de dichos flujos y de las condiciones de contratación (permanencia mínima, penalidad por baja anticipada, renovación automática, precio tras la prueba).
+2. Construir un corpus etiquetado de flujos de cancelación y de correos de confirmación del alta de servicios por suscripción de uso frecuente.
+3. Desarrollar un módulo de detección de *dark patterns*, independiente del modelo de clasificación, que genere un índice de riesgo por servicio y que, a partir del correo de confirmación del alta, alerte sobre permanencia mínima o costos ocultos.
+4. Desarrollar un motor de reglas determinista y un emulador de tarjetas virtuales que apliquen políticas de vencimiento, tope de monto y cantidad de cobros a partir de dicho índice.
+5. Integrar los componentes en un prototipo web que permita al usuario registrar suscripciones, revisar el riesgo de cada servicio y sus alertas, y gestionar sus tarjetas.
+6. Evaluar el prototipo en términos de precisión de detección (incluidas la comparación entre un clasificador basado en un modelo de lenguaje local y una línea base heurística, y la extracción de condiciones de contratación), cumplimiento de reglas, rendimiento y usabilidad.
+
 ### Trazabilidad
 | Objetivo específico | Subpregunta de investigación | Componente | Aporte |
 |---|---|---|---|
 | OE1 Caracterizar patrones y esquema | SP1 | N1 | A1, A2 |
 | OE2 Corpus etiquetado | SP1, SP2 | N1 | A3 |
-| OE3 Módulo de detección | SP1, SP2 | N1 | A2, A5 |
+| OE3 Módulo de detección y alerta | SP1, SP2 | N1 | A2, A5 |
 | OE4 Motor de reglas y emulador | SP3 | N2, N3 | A4 |
 | OE5 Integración en prototipo web | SP4 | Soporte + N1–N3 | — |
 | OE6 Evaluación | SP1–SP4 | Todos | A5 |
